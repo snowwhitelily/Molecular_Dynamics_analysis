@@ -83,8 +83,6 @@ ROS1_MD_project/
 │
 ├── md_setup/
 │   GROMACS system preparation files
-│   ├── topology
-│   ├── parameter files
 │   └── tpr files
 │
 ├── trajectories/
