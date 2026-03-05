@@ -1,0 +1,38 @@
+#!/bin/bash
+#SBATCH --job-name ROS1MD
+#SBATCH --partition assemblix
+#SBATCH --time 12:00:00
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=12
+#SBATCH --mem 1G
+#SBATCH --gpus=1
+#SBATCH --account=kcbbe
+#SBATCH --array=0-38
+
+source /usr/local/gromacs-2024.5/bin/GMXRC
+export GMX_DISABLE_GPU_TIMING=1
+
+wd=/commons/staff/projects/ROS1/mutants
+cd $wd
+
+MUTS=(WT/ ?[0-9]*/)
+MUT=${MUTS[$SLURM_ARRAY_TASK_ID]}
+
+echo
+echo ===== $MUT =====
+echo
+
+for r in 0 1 2
+do
+    echo ===== RUN $r =====
+
+    (
+        cd $MUT/$r
+        if [[ -f ${MUT%/}-MD.tpr && ! -f ${MUT%/}-MD.gro ]]
+        then
+            [[ -f ${MUT%/}-MD.xtc ]] && APPEND=-append || APPEND=
+            gmx mdrun -deffnm ${MUT%/}-MD -pin on -pinstride 0 -ntmpi 1 -npme 0 -nb gpu -ntomp 12 -gpu_id 0 -bonded gpu -update gpu $APPEND -cpi ${MUT%/}-MD
+        fi
+        mv ${MUT%/}-MD.tpr ${MUT%/}-MD.tpr.done
+    )
+done
