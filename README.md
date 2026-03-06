@@ -31,6 +31,12 @@ Two complementary structural representations were analyzed:
 
 ## Repository Structure
 
+.
+├── Unsupervised_learning.ipynb
+├── README.md
+├── requirements.txt
+├── requirements_explanation.txt
+└── timer.py
 
 
 
@@ -59,3 +65,10 @@ Two complementary structural representations were analyzed:
 timer.py
 
 A small helper module used in the notebook to measure execution time of different analysis steps using context managers.
+
+### How to run the notebook
+
+Install the required dependencies:
+pip install -r requirements.txt
+
+Then run the notebook using **Jupyter Notebook** or **JupyterLab**.
