@@ -30,3 +30,32 @@ Two complementary structural representations were analyzed:
 ---
 
 ## Repository Structure
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Additional utility
+
+timer.py
+
+A small helper module used in the notebook to measure execution time of different analysis steps using context managers.
