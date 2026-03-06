@@ -89,7 +89,14 @@ pip install -r requirements.txt
 
 Then run the notebook using **Jupyter Notebook** or **JupyterLab**.
 
-## Author
+## License
+This project is licensed under the MIT License.
+
+## Contact
+Name: Lily Konadu Gyammerah
+
+Email: lk.gyammerah@st.hanze.nl
+
 
 Capstone project for the **Unsupervised Learning course**.
 
