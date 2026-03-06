@@ -1,4 +1,4 @@
-# unsupervised_learning_assignment
+# Unsupervised Learning Assignment
 
 ## ROS1 Mutational Dynamics Analysis
 
@@ -32,6 +32,7 @@ Two complementary structural representations were analyzed:
 ## Repository Structure
 
 ```
+.
 ├── Unsupervised_learning.ipynb
 ├── README.md
 ├── requirements.txt
@@ -71,7 +72,7 @@ The ACT-OUT representation revealed that the kinase core geometry remains largel
 
 The orientation-based representation identified multiple conformational states and revealed mutation-dependent changes in state occupancy.
 
-These results demonstrate that relative lobe orientation provides a more informative representation of conformational variability than global backbone coordinates.
+These results suggest that relative lobe orientation provides a more informative representation of conformational variability than global backbone coordinates.
 
 ---
 
@@ -85,8 +86,10 @@ A small helper module used in the notebook to measure execution time of differen
 ### How to run the notebook
 
 Install the required dependencies:
-pip install -r requirements.txt
 
+```
+pip install -r requirements.txt
+```
 Then run the notebook using **Jupyter Notebook** or **JupyterLab**.
 
 ## License
