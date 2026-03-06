@@ -31,13 +31,13 @@ Two complementary structural representations were analyzed:
 
 ## Repository Structure
 
-.
+```
 ├── Unsupervised_learning.ipynb
 ├── README.md
 ├── requirements.txt
 ├── requirements_explanation.txt
 └── timer.py
-
+```
 
 
 
