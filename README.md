@@ -40,30 +40,46 @@ Two complementary structural representations were analyzed:
 ```
 
 
+The notebook performs:
 
+1. Data loading and preprocessing
+2. Feature construction
+3. PCA dimensionality reduction
+4. Density-based clustering
+5. Mutation state occupancy analysis
 
+---
 
+## Software Used
 
+This project relies on several scientific computing tools:
 
+• **GROMACS** – molecular dynamics simulation package  
+• **gromit** – molecular dynamics analysis tools  
+• **NumPy / SciPy** – numerical computation  
+• **scikit-learn** – machine learning algorithms  
+• **HDBSCAN** – density-based clustering  
+• **Matplotlib** – data visualization
 
+---
 
+## Main Findings
 
+Two feature representations were analyzed.
 
+The ACT-OUT representation revealed that the kinase core geometry remains largely conserved across mutants.
 
+The orientation-based representation identified multiple conformational states and revealed mutation-dependent changes in state occupancy.
 
+These results demonstrate that relative lobe orientation provides a more informative representation of conformational variability than global backbone coordinates.
 
-
-
-
-
-
-
-
+---
 
 ### Additional utility
 
+```
 timer.py
-
+```
 A small helper module used in the notebook to measure execution time of different analysis steps using context managers.
 
 ### How to run the notebook
@@ -72,3 +88,8 @@ Install the required dependencies:
 pip install -r requirements.txt
 
 Then run the notebook using **Jupyter Notebook** or **JupyterLab**.
+
+## Author
+
+Capstone project for the **Unsupervised Learning course**.
+
