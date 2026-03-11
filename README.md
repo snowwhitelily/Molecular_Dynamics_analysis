@@ -35,6 +35,7 @@ Two complementary structural representations were analyzed:
 .
 ├── Unsupervised_learning.ipynb
 ├── README.md
+├── REPORT.md
 ├── requirements.txt
 ├── requirements_explanation.txt
 └── timer.py
@@ -90,8 +91,10 @@ Install the required dependencies:
 ```
 pip install -r requirements.txt
 ```
-Then run the notebook using **Jupyter Notebook** or **JupyterLab**.
 
+Open `Unsupervised_learning.ipynb` in **Jupyter Notebook** or **JupyterLab** and run the cells in order.
+
+---
 ## License
 This project is licensed under the MIT License.
 
