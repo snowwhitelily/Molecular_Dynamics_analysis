@@ -1,51 +1,54 @@
-# Python
 __pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-*.so
-
-# Jupyter
+*.pyc
 .ipynb_checkpoints/
-
-# Virtual environments
-.venv/
-venv/
-env/
-
-# OS files
 .DS_Store
-Thumbs.db
 
-# IDE/editor
-.vscode/
-.idea/
+# MD data folders (DO NOT PUSH)
+WT/
+C*/
+D*/
+E*/
+F*/
+G*/
+H*/
+L*/
+Q*/
+R*/
+S*/
+V*/
 
-# Logs
-*.log
-
-# Build / cache
-build/
-dist/
-.eggs/
-*.egg-info/
-.pytest_cache/
-.mypy_cache/
-
-# Local data / outputs
+# Large simulation files
 *.xtc
 *.trr
-*.tpr
-*.gro
 *.edr
-*.cpt
-*.ndx
-*.top
-*.itp
-*.pdb
-*.xvg
+*.gro
+*.tpr
+*.log
 
-# Large generated outputs
-outputs/
-results/
-temp/
+# Generated structural outputs from notebook
+ACT_LOOP_PC*.pdb
+GLOBAL_KINASE_PC*.pdb
+GLOBAL_KINASE_LDA_*.pdb
+LDA_mode_loadings_*.pdb
+TYR_LOOP_PC*.pdb
+orientation_cluster_reps/
+
+# Generated images outside figures/
+RMSD.png
+Figure-*.svg
+
+# Root-level helper/output files not meant for repo root
+make_all_whole_xtc.sh
+prep_protein_xtc_pdb.sh
+mutants.txt
+
+# Placeholder files from remote structure that we do not want to keep
+analysis/figures/fig
+analysis/scripts/script
+structures/structures
+trajectories/traj
+md_setup/tpr
+
+# Old assignment / extra docs
+Unsupervised_learning.ipynb
+requirements_explanation.txt
