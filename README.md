@@ -117,7 +117,7 @@ ROS1_MD_project/
 
 ## Simulation Workflow
 
-### 1. Structure Preparation
+### Structure Preparation
 
 Initial structures of the ROS1 kinase domain were generated using **AlphaFold**.
 
@@ -129,7 +129,7 @@ Mutations were introduced into the structures before MD simulation.
 
 ---
 
-### 2. Molecular Dynamics Simulations
+### Molecular Dynamics Simulations
 
 Simulations were performed using **GROMACS**.
 
@@ -147,7 +147,7 @@ Simulations were run in **multiple replicas** for each mutant to capture conform
 
 ---
 
-### 3. Trajectory Processing
+### Trajectory Processing
 
 Trajectory preprocessing included:
 
@@ -159,7 +159,7 @@ Flexible terminal regions were excluded from some analyses to avoid artifacts du
 
 ---
 
-### 4. Principal Component Analysis (PCA)
+### Principal Component Analysis (PCA)
 
 PCA was used to characterize the dominant conformational motions of the kinase domain.
 
@@ -175,6 +175,48 @@ This allows comparison of the conformational space sampled by different mutants 
 
 ---
 
+## Structural Analyses Performed
+
+To better understand mutation-dependent structural dynamics, several region-specific PCA analyses were performed on the ROS1 kinase domain.
+
+### Global Kinase PCA (ACT-IN)
+
+Principal component analysis was first performed on the backbone atoms of the full kinase domain including the activation loop.
+
+This analysis captures the dominant global motions of the kinase and allows comparison of the conformational landscapes sampled by different mutants.
+
+### Global Kinase PCA (ACT-OUT)
+
+To reduce noise from the highly flexible activation loop, PCA was repeated after excluding activation loop residues.
+
+This highlights global motions of the kinase core and allows clearer comparison of mutant-dependent conformational shifts.
+
+### N-terminal Lobe PCA (NTL)
+
+PCA was performed specifically on the N-terminal lobe of the kinase domain to isolate structural variability in this regulatory region.
+
+This analysis helps detect mutation-induced changes in the dynamics of the kinase N-lobe.
+
+### C-terminal Lobe PCA (CTL)
+
+A separate PCA analysis was performed on the C-terminal lobe of the kinase domain, which forms the catalytic core of the kinase.
+
+This allows comparison of structural stability and conformational variation within the catalytic lobe across mutants.
+
+### Activation Loop PCA (A-loop)
+
+The activation loop plays a key regulatory role in kinase activity. PCA was used to characterize its conformational flexibility and identify potential shifts in activation loop dynamics between mutants.
+
+### Tyrosine Loop PCA (Tyr-loop)
+
+The Tyr-loop is located near the catalytic site and contributes to substrate binding. PCA analysis of this region allows comparison of mutation-dependent conformational changes in the catalytic pocket.
+
+### Orientation PCA
+
+Orientation PCA was performed using engineered features describing the relative orientation between the N-terminal and C-terminal lobes of the kinase.
+
+This analysis captures inter-lobe motions that are important for kinase activation and inhibitor binding.
+
 ### Conformational State Clustering
 
 Density-based clustering methods (HDBSCAN and DBSCAN) were applied to PCA projections in order to identify recurrent conformational states sampled during the simulations.
@@ -183,7 +225,7 @@ Cluster occupancy was then calculated for each mutant to quantify differences in
 
 ---
 
-### 5. Structural Visualization
+### Structural Visualization
 
 Structural visualization is performed using **PyMOL** to interpret the structural motions captured during the MD simulations and PCA analyses.
 
@@ -210,10 +252,6 @@ load GLOBAL_KINASE_PC01.pdb
 ```
 
 These structures help illustrate the dominant motions captured during the simulations and allow structural comparison across different mutants.
-
-
-
-These structures highlight the dominant motions associated with each principal component.
 
 ---
 
