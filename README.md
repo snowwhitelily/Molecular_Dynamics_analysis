@@ -17,17 +17,22 @@ Multiple replicas were simulated for each mutant to compare their conformational
 
 ---
 
+## Project Status
+
+This repository contains the active analysis workflow for the ROS1 kinase mutant internship project.  
+Simulation outputs and structural analyses are being refined iteratively as the project progresses.
+
+---
+
 ## Studied System
 
-Protein: **ROS1 kinase domain**
-
-Residue range used for modeling:
+Protein: **ROS1 kinase domain**  
 **ROS1_HUMAN** (UniProt: P08922)  
-Residues: 1934–2225
+Modeled residue range: **1934–2225**
 
 ## Mutations Studied
 
-A total of **39 ROS1 kinase variants** were analyzed, including single mutants, combined mutants, and the wild-type reference.
+A total of **39 ROS1 kinase variants** were analyzed, including single mutants, compound mutants, and the wild-type reference.
 
 | Variant |
 |--------|
@@ -78,7 +83,7 @@ Replicate simulations were performed for each mutant to ensure reproducibility.
 ## Repository Structure
 
 ```
-ROS1_MD_project/
+Molecular_Dynamics_analysis/
 │
 ├── analysis/
 │   Python notebook and scripts for trajectory analysis
@@ -157,7 +162,7 @@ Trajectory preprocessing included:
 - Structural alignment
 - Selection of relevant atoms (backbone: N, CA, C, O)
 
-Flexible terminal regions were excluded from some analyses to avoid artifacts due to high mobility.
+Highly flexible terminal regions were excluded from selected analyses to reduce noise arising from large-amplitude motions unrelated to the kinase core.
 
 ---
 
@@ -173,8 +178,7 @@ Steps included:
 4. Eigenvector decomposition
 5. Projection of trajectories onto principal components
 
-This allows comparison of the conformational space sampled by different mutants and helps identify mutation-dependent shifts in dominant structural motions.
-
+This enables comparison of the conformational space sampled by different mutants and helps identify mutation-dependent shifts in dominant structural motions.
 ---
 
 ## Structural Analyses Performed
@@ -254,6 +258,7 @@ load GLOBAL_KINASE_PC01.pdb
 ```
 
 These structures help illustrate the dominant motions captured during the simulations and allow structural comparison across different mutants.
+PyMOL scripts used for structural inspection and figure preparation can be stored in the `pymol/` directory of this repository.
 
 ---
 
@@ -261,8 +266,8 @@ These structures help illustrate the dominant motions captured during the simula
 
 ### Software
 
-- **GROMACS** — MD system preparation and production simulations
-- **PyMOL** — structural visualization
+- **GROMACS** — molecular dynamics system preparation and production simulations
+- **PyMOL** — structural visualization and figure preparation
 - **Python 3** — analysis environment
 
 ### Python packages
@@ -277,8 +282,8 @@ These structures help illustrate the dominant motions captured during the simula
 
 ### Optional tools
 
-- Tsjerk Wassenaar’s **gromit** scripts for MD workflow automation and preprocessing
-
+- Tsjerk Wassenaar’s **gromit** scripts — workflow automation and trajectory preprocessing utilities.
+  
 ---
 
 ## Example Analysis Workflow
@@ -313,7 +318,10 @@ Representative figures from the final analysis are shown below.
 
 Example clustering results from the final MD analysis:
 
+**Orientation PCA cluster population**
 ![Orientation PCA clustering](analysis/figures/orientation_cluster_population.png)
+
+**ACT-OUT occupancy heatmap**
 ![ACT-OUT occupancy heatmap](analysis/figures/actout_occupancy_heatmap.png)
 
 ---
@@ -338,7 +346,7 @@ Simulation setup scripts are located in:
 
 `md_setup/`
 
-PyMOL visualization scripts can be stored in:
+PyMOL visualization scripts and session helpers can be stored in:
 
 `pymol/`
 
