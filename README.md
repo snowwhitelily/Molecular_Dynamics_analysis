@@ -306,9 +306,10 @@ The analysis focuses on identifying mutation-dependent differences in the confor
 
 ## Example Analysis Output
 
-Example clustering results from the conformational analysis:
+Example clustering results from the final MD analysis:
 
 ![Orientation PCA clustering](analysis/figures/orientation_cluster_population.png)
+![ACT-OUT occupancy heatmap](analysis/figures/actout_occupancy_heatmap.png)
 
 ---
 
