@@ -1,3 +1,6 @@
+# clustering plots
+
+# importing necessary libraries
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import DBSCAN
