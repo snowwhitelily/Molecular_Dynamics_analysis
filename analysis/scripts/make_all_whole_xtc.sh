@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -eo pipefail
 
 source /usr/local/gromacs-2024.5/bin/GMXRC
 

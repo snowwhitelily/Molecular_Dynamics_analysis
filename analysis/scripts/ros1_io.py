@@ -1,13 +1,35 @@
 import numpy as np
 import MDAnalysis as mda
 import molly
+from pathlib import Path
+
+
+def _prot_files(d):
+    """
+    Resolve the mutant-specific prepared protein files from a run directory.
+
+    Expected layout
+    ---------------
+    d = .../<MUT>/<REP>/
+
+    Files inside
+    ------------
+    <MUT>-MD-prot.pdb
+    <MUT>-MD-prot.xtc
+    """
+    d = Path(d)
+    mut = d.parent.name
+    pdb = d / f"{mut}-MD-prot.pdb"
+    xtc = d / f"{mut}-MD-prot.xtc"
+    return pdb, xtc
 
 
 def subsampled_len(d, stride=1):
     """
     Number of frames after subsampling by stride.
     """
-    u = mda.Universe(f"{d}/md-prot.pdb", f"{d}/md-prot.xtc")
+    pdb, xtc = _prot_files(d)
+    u = mda.Universe(str(pdb), str(xtc))
     return len(np.arange(len(u.trajectory))[::stride])
 
 
@@ -16,7 +38,8 @@ def get_frame_idx(d, stride=1, nsub=None):
     Return subsampled frame indices for one trajectory.
     If nsub is provided, truncate to that length.
     """
-    u = mda.Universe(f"{d}/md-prot.pdb", f"{d}/md-prot.xtc")
+    pdb, xtc = _prot_files(d)
+    u = mda.Universe(str(pdb), str(xtc))
     idx = np.arange(len(u.trajectory))[::stride]
     if nsub is not None:
         idx = idx[:nsub]
@@ -34,7 +57,8 @@ def xtc2array_varlen_by_indices(d, atom_indices, frame_selection=None):
     pbc : np.ndarray
         Shape (T, 3, 3)
     """
-    m = molly.XTCReader(f"{d}/md-prot.xtc")
+    _, xtc = _prot_files(d)
+    m = molly.XTCReader(str(xtc))
     nframes = len(m.read_frames(atom_selection=[], frame_selection=frame_selection))
     m.home()
 
@@ -58,7 +82,8 @@ def selection_keys_and_indices(d, selection):
       keys: set of (resid, name) for atoms in selection
       key_to_index: dict mapping key -> atom_index (0-based)
     """
-    u = mda.Universe(f"{d}/md-prot.pdb")
+    pdb, _ = _prot_files(d)
+    u = mda.Universe(str(pdb))
     ag = u.select_atoms(selection)
 
     keys = []
