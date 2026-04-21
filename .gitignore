@@ -1,9 +1,41 @@
+# ==================================================
+# Python / Jupyter
+# ==================================================
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 .ipynb_checkpoints/
-.DS_Store
 
-# MD data folders (DO NOT PUSH)
+# OS / editor junk
+.DS_Store
+Thumbs.db
+
+# ==================================================
+# Large MD trajectory / simulation data (DO NOT PUSH)
+# ==================================================
+results/
+trajectories/
+analysis/outputs/
+
+*.xtc
+*.trr
+*.edr
+*.gro
+*.tpr
+*.log
+
+# Binary analysis outputs
+*.npy
+*.npz
+
+# Slurm / runtime logs
+*.out
+*.err
+
+# ==================================================
+# Mutant raw folders if ever copied locally
+# ==================================================
 WT/
 C*/
 D*/
@@ -17,15 +49,9 @@ R*/
 S*/
 V*/
 
-# Large simulation files
-*.xtc
-*.trr
-*.edr
-*.gro
-*.tpr
-*.log
-
-# Generated structural outputs from notebook
+# ==================================================
+# Generated structural outputs
+# ==================================================
 ACT_LOOP_PC*.pdb
 GLOBAL_KINASE_PC*.pdb
 GLOBAL_KINASE_LDA_*.pdb
@@ -33,38 +59,55 @@ LDA_mode_loadings_*.pdb
 TYR_LOOP_PC*.pdb
 orientation_cluster_reps/
 
-# Generated images outside figures/
+# ==================================================
+# Loose generated images outside managed folders
+# ==================================================
 RMSD.png
 Figure-*.svg
 
-# Root-level helper/output files not meant for repo root
+# ==================================================
+# Root helper files not needed in repo root
+# ==================================================
 make_all_whole_xtc.sh
 prep_protein_xtc_pdb.sh
 mutants.txt
 
-# Placeholder files from remote structure that we do not want to keep
+# ==================================================
+# Placeholder junk from remote system
+# ==================================================
 analysis/figures/fig
 analysis/scripts/script
 structures/structures
 trajectories/traj
 md_setup/tpr
 
-# Old assignment / extra docs
+# ==================================================
+# Old coursework / extras
+# ==================================================
 Unsupervised_learning.ipynb
 requirements_explanation.txt
 
-# Generated outputs
-results/
-trajectories/
-analysis/outputs/
-*.npy
-*.npz
-*.csv
-*.out
-*.err
+# ==================================================
+# Figures policy
+# Keep curated folders, ignore temp archive junk
+# ==================================================
 
-# Extra local figure/archive folders we do not want in git
+# ignore messy temp archive
 figures/ROS1_archive_old_dataset/
-figures/ROS1_old_dataset/*.png
-figures/ROS1_old_dataset/figures/
-analysis/scripts/__pycache__/
+
+# KEEP these folders and contents tracked
+!figures/
+!figures/ROS1/
+!figures/ROS1/**
+!figures/ROS1_old_dataset/
+!figures/ROS1_old_dataset/**
+
+# ==================================================
+# Keep useful source files
+# ==================================================
+!*.py
+!*.md
+!*.txt
+!*.yml
+!*.yaml
+!*.json
