@@ -52,3 +52,14 @@ md_setup/tpr
 # Old assignment / extra docs
 Unsupervised_learning.ipynb
 requirements_explanation.txt
+
+# others
+
+results/
+trajectories/
+analysis/outputs/
+*.npy
+*.npz
+*.csv
+*.out
+*.err
