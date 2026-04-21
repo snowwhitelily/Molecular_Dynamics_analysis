@@ -1,9 +1,8 @@
 # %%
 # ROS1 Analysis Pipeline
-# Script 2: PCA and Clustering (fast exploratory version with saved figures)
+# Script 2A: PCA and Clustering (ACT-IN + ACT-OUT)
 
 # %%
-import os
 import re
 import numpy as np
 import pandas as pd
@@ -52,7 +51,7 @@ PLOT_PAIRS = [(0, 1), (0, 2), (1, 2), (0, 3), (1, 3)]
 
 BASE = Path.home() / "Molecular_Dynamics_analysis"
 RESULTS = BASE / "results" / "ROS1"
-FIG_DIR = BASE / "figures" / "ROS1" / "ros1_prepared_final" / "step2_fast"
+FIG_DIR = BASE / "figures" / "ROS1" / "ros1_prepared_final" / "step2_fast" / "02a_actin_actout"
 FIG_DIR.mkdir(parents=True, exist_ok=True)
 
 print("Running exploratory PCA mode")
@@ -72,8 +71,6 @@ masks = {k: masks_npz[k] for k in masks_npz.files}
 CA = masks["CA"]
 BB = masks["BB"]
 BODY = masks["BODY"]
-NTL = masks["NTL"]
-CTL = masks["CTL"]
 ACT = masks["ACT"]
 
 sele = np.load(RESULTS / "sele.npy", allow_pickle=True)
@@ -95,7 +92,7 @@ with open(RESULTS / "colors.txt") as f:
 with open(RESULTS / "nrep.txt") as f:
     nrep = int(f.read().strip())
 
-print("Step 2 setup ok.")
+print("Step 2A setup ok.")
 print("n trajectories:", len(traj_aligned))
 print("example F:", F[0])
 print("sele atoms:", int(sele.sum()))
@@ -104,11 +101,6 @@ print("sele atoms:", int(sele.sum()))
 # ============================================
 # helpers
 # ============================================
-
-def slugify(text: str) -> str:
-    text = text.strip().lower()
-    text = re.sub(r"[^a-z0-9]+", "_", text)
-    return text.strip("_")
 
 def save_current_figure(filename: str):
     out = FIG_DIR / filename
@@ -264,14 +256,12 @@ def run_pca_block(traj_list, sel_mask, title_prefix, prefix, traj_colors):
 
     for a, b in PLOT_PAIRS:
         fig, ax = plt.subplots(figsize=(9, 9))
-
         for ti in range(len(F)):
             Zi = scores_by_traj[ti]
             ax.scatter(
                 Zi[:, a], Zi[:, b],
                 s=2, c=[traj_colors[ti]], alpha=0.15, linewidths=0
             )
-
         ax.set_aspect("equal", adjustable="box")
         ax.set_xlabel(f"PC{a+1}")
         ax.set_ylabel(f"PC{b+1}")
@@ -386,7 +376,7 @@ PCA_ACT_OUT = run_pca_block(
 )
 
 # %%
-print("Script 2 PCA sections completed so far:")
+print("Script 2A completed:")
 print("- ACT-IN")
 print("- ACT-OUT")
 print("Flow used: Scree -> Scores -> Clusters -> Loadings -> first 10% / last 10%")

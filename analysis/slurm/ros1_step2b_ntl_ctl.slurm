@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=ros1_step2_fast_save
-#SBATCH --output=/homes/lkgyammerah/Molecular_Dynamics_analysis/results/ROS1/step2_fast_save_%j.out
-#SBATCH --error=/homes/lkgyammerah/Molecular_Dynamics_analysis/results/ROS1/step2_fast_save_%j.err
+#SBATCH --job-name=ros1_step2b
+#SBATCH --output=/homes/lkgyammerah/Molecular_Dynamics_analysis/results/ROS1/step2b_%j.out
+#SBATCH --error=/homes/lkgyammerah/Molecular_Dynamics_analysis/results/ROS1/step2b_%j.err
 #SBATCH --time=24:00:00
 #SBATCH --mem=96G
 #SBATCH --cpus-per-task=4
@@ -23,8 +23,8 @@ echo "==== USING PYTHON ===="
 
 cd /homes/lkgyammerah/Molecular_Dynamics_analysis/analysis
 
-echo "==== RUNNING STEP 2 FAST SAVE ===="
-/homes/lkgyammerah/.venvs/ros1_analysis_env/bin/python 02_pca_clustering.py
+echo "==== RUNNING STEP 2B ===="
+/homes/lkgyammerah/.venvs/ros1_analysis_env/bin/python 02b_pca_ntl_ctl.py
 
 echo "==== JOB END ===="
 date
