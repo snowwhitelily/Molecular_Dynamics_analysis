@@ -52,7 +52,7 @@ PLOT_PAIRS = [(0, 1), (0, 2), (1, 2), (0, 3), (1, 3)]
 
 BASE = Path.home() / "Molecular_Dynamics_analysis"
 RESULTS = BASE / "results" / "ROS1"
-FIG_DIR = BASE / "figures" / "ROS1" / "step2_fast"
+FIG_DIR = BASE / "figures" / "ROS1" / "ros1_prepared_final" / "step2_fast"
 FIG_DIR.mkdir(parents=True, exist_ok=True)
 
 print("Running exploratory PCA mode")
