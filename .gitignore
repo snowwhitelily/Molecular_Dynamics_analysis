@@ -53,8 +53,7 @@ md_setup/tpr
 Unsupervised_learning.ipynb
 requirements_explanation.txt
 
-# others
-
+# Generated outputs
 results/
 trajectories/
 analysis/outputs/
@@ -63,3 +62,9 @@ analysis/outputs/
 *.csv
 *.out
 *.err
+
+# Extra local figure/archive folders we do not want in git
+figures/ROS1_archive_old_dataset/
+figures/ROS1_old_dataset/*.png
+figures/ROS1_old_dataset/figures/
+analysis/scripts/__pycache__/
