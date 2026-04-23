@@ -45,18 +45,15 @@ def traj_mutant(p):
 def traj_replica(p):
     return Path(p).name
 
-def traj_mut_rep_df(F):
-    return pd.DataFrame({
-        "trajectory": F,
-        "mutant": [traj_mutant(p) for p in F],
-        "replica": [traj_replica(p) for p in F],
-    })
+def get_frame_index_original(frame_idx_list, ti, local_i):
+    return int(np.asarray(frame_idx_list[ti]).astype(int)[local_i])
 
 # ============================================
 # Load outputs from Step 1
 # ============================================
 F = pd.read_csv(RESULTS / "F_paths.csv")["folder"].tolist()
 traj_aligned = np.load(RESULTS / "traj_aligned.npy", allow_pickle=True).tolist()
+frame_idx_list = np.load(RESULTS / "frame_idx_list.npy", allow_pickle=True).tolist()
 masks_npz = np.load(RESULTS / "masks.npz", allow_pickle=True)
 masks = {k: masks_npz[k] for k in masks_npz.files}
 selection = (RESULTS / "selection.txt").read_text().strip()
@@ -67,7 +64,6 @@ meta = SimpleNamespace(
     resnames=np.load(RESULTS / "meta_resnames.npy", allow_pickle=True),
 )
 
-# Use actual saved sele if needed downstream
 sele = np.load(RESULTS / "sele.npy", allow_pickle=True)
 ref_centered = np.load(RESULTS / "ref_centered.npy", allow_pickle=True)
 
@@ -75,7 +71,7 @@ print("Loaded trajectories:", len(traj_aligned))
 print("Loaded masks:", sorted(masks.keys()))
 
 # ============================================
-# A-loop state classification (from notebook A-loop cell)
+# A-loop state classification
 # ============================================
 ACT = masks["ACT"]
 BB = masks["BB"]
@@ -85,11 +81,13 @@ ACT_idx = np.where(sele_act)[0].astype(int)
 
 thr_act_nm = 0.25
 ACT_state = []
+ACT_rmsd_nm_list = []
 for xyz in traj_aligned:
     act_xyz = xyz[:, ACT_idx, :]
     ref0 = act_xyz[0]
     diff = act_xyz - ref0[None, :, :]
     rmsd_nm = np.sqrt((diff ** 2).sum(axis=(1, 2)) / ACT_idx.size) / 10.0
+    ACT_rmsd_nm_list.append(rmsd_nm)
     ACT_state.append((rmsd_nm > thr_act_nm).astype(np.int8))
 
 act_rows = []
@@ -99,6 +97,7 @@ for i, st in enumerate(ACT_state):
         "mutant": traj_mutant(F[i]),
         "replica": traj_replica(F[i]),
         "act_state_frac1": float(np.mean(st)),
+        "act_rmsd_nm_mean": float(np.mean(ACT_rmsd_nm_list[i])),
     })
 df_act = pd.DataFrame(act_rows)
 save_table(df_act, "step3a_act_state_summary.csv")
@@ -111,15 +110,14 @@ plt.title("A-loop state distribution (0/1)")
 save_current_figure("step3a_act_state_distribution.png")
 
 # ============================================
-# DFG χ1 labeling (exact notebook logic, adapted paths)
+# DFG χ1 labeling
 # ============================================
 DFG_F = 170
-use_median_threshold = True
 manual_thr_deg = None
 
-# mirror notebook frame sampling for bridge
-frame_idx_list = [get_frame_idx(d) for d in F]
-nframes_sub = min(len(fi) for fi in frame_idx_list)
+frame_idx_local_list = [get_frame_idx(d) for d in F]
+frame_idx_local_list = [np.asarray(x).astype(int) for x in frame_idx_local_list]
+nframes_sub = min(len(fi) for fi in frame_idx_local_list)
 
 chi1_deg_list = []
 with tim("DFG χ1 (REAL) per-trajectory computation"):
@@ -149,26 +147,30 @@ print("DFG χ1 threshold (deg):", thr_dfg)
 print("Overall fraction state=1:", float(np.mean(np.concatenate(dfg_state_list))))
 
 DFG_state = []
+DFG_chi1_sub = []
 for ti in range(len(F)):
-    fi = frame_idx_list[ti]
+    fi = frame_idx_local_list[ti]
     full = np.asarray(dfg_state_list[ti], dtype=np.int8)
+    full_chi1 = np.asarray(chi1_deg_list[ti], dtype=float)
     if fi.max() >= full.size:
         raise ValueError(
             f"[DFG BRIDGE] Traj {ti} ({F[ti]}): max(fi)={int(fi.max())} "
             f"but dfg_state_list length={full.size}."
         )
     DFG_state.append(full[fi][:nframes_sub])
+    DFG_chi1_sub.append(full_chi1[fi][:nframes_sub])
 
 df_dfg = pd.DataFrame({
     "trajectory": F,
     "mutant": [traj_mutant(p) for p in F],
     "replica": [traj_replica(p) for p in F],
     "dfg_state_frac1": [float(np.mean(x)) for x in DFG_state],
+    "dfg_chi1_deg_mean": [float(np.nanmean(x)) for x in DFG_chi1_sub],
 })
 save_table(df_dfg, "step3a_dfg_state_summary.csv")
 
 # ============================================
-# Structural-region helpers (exact notebook)
+# Structural-region helpers
 # ============================================
 def get_abs_resids(meta):
     return np.asarray(meta.resids).astype(int) + 1933
@@ -182,11 +184,8 @@ REGIONS = {
 print("Defined REGIONS:", REGIONS)
 
 # ============================================
-# αC-HELIX METRICS (exact notebook, save instead of display/show)
+# αC-HELIX METRICS
 # ============================================
-natoms = traj_aligned[0].shape[1]
-meta_atomgroup = mda.Universe(f"{F[0]}/{Path(F[0]).parent.name}-MD-prot.pdb").select_atoms(selection)
-
 resids_abs = get_abs_resids(meta)
 names = np.asarray(meta.names)
 mut_names = np.array([traj_mutant(p) for p in F])
@@ -221,6 +220,8 @@ alphaC_hinge_mean_dist_list = []
 alphaC_hinge_std_dist_list = []
 alphaC_compact_frac_list = []
 all_d_lys_glu = []
+alphaC_hinge_dist_per_traj = []
+lys_glu_dist_per_traj = []
 
 for xyz in traj_aligned:
     alphaC_xyz = xyz[:, mask_alphaC, :]
@@ -231,13 +232,17 @@ for xyz in traj_aligned:
     alphaC_com = alphaC_xyz.mean(axis=1)
     hinge_com = xyz[:, mask_pocket_anchor, :].mean(axis=1)
     alphaC_hinge_dist = np.linalg.norm(alphaC_com - hinge_com, axis=1)
+    alphaC_hinge_dist_per_traj.append(alphaC_hinge_dist)
 
     alphaC_hinge_mean_dist_list.append(alphaC_hinge_dist.mean())
     alphaC_hinge_std_dist_list.append(alphaC_hinge_dist.std())
 
     if idx_lys is not None and idx_glu is not None:
         d_i = np.linalg.norm(xyz[:, idx_lys, :] - xyz[:, idx_glu, :], axis=1)
+        lys_glu_dist_per_traj.append(d_i)
         all_d_lys_glu.append(d_i)
+    else:
+        lys_glu_dist_per_traj.append(None)
 
 if idx_lys is not None and idx_glu is not None:
     all_d_lys_glu_flat = np.concatenate(all_d_lys_glu)
@@ -247,6 +252,7 @@ if idx_lys is not None and idx_glu is not None:
         alphaC_compact_frac_list.append(alphaC_state_i.mean())
     print(f"Lys1980-Glu1967 proxy threshold: {thr_alphaC:.3f} nm")
 else:
+    thr_alphaC = np.nan
     print("Could not build Lys-Glu αC proxy; RMSF and COM metrics still available.")
 
 df_alphaC = pd.DataFrame({
@@ -287,7 +293,7 @@ if "alphaC_compact_frac" in df_alphaC_mut.columns:
     save_current_figure("step3a_alphaC_compact_frac.png")
 
 # ============================================
-# ATP-POCKET GEOMETRY METRICS (exact notebook)
+# ATP-POCKET GEOMETRY METRICS
 # ============================================
 mask_ploop = (
     (resids_abs >= REGIONS["P_loop"][0]) &
@@ -360,6 +366,7 @@ else:
     print(f"Pocket front threshold: {thr_front:.3f} nm")
     print("Gatekeeper/DFG-Phe atom selection missing; skipping that metric.")
 
+pocket_open_state_per_traj = []
 for i in range(len(traj_aligned)):
     front_open_i = (per_traj_front[i] >= thr_front).astype(int)
     if np.isfinite(thr_back) and per_traj_back[i] is not None:
@@ -369,6 +376,7 @@ for i in range(len(traj_aligned)):
         gate_dfgF_std.append(np.nanstd(per_traj_back[i]))
     else:
         pocket_open_i = front_open_i.copy()
+    pocket_open_state_per_traj.append(pocket_open_i)
     pocket_open_frac.append(pocket_open_i.mean())
 
 df_pocket = pd.DataFrame({
@@ -411,62 +419,61 @@ plt.xticks(rotation=90)
 save_current_figure("step3a_pocket_open_frac.png")
 
 # ============================================
-# Further Analysis (exact notebook logic, adapted)
+# Frame-level metrics table for later cluster mapping
 # ============================================
-# pick basin source preferring distance PCA, then ACT-OUT CTL-fit
-scores_name = None
-scores_flat = None
-x_owner = None
+frame_rows = []
+for ti, xyz in enumerate(traj_aligned):
+    nframes_i = xyz.shape[0]
+    for local_i in range(nframes_i):
+        row = {
+            "traj_index": ti,
+            "trajectory": F[ti],
+            "mutant": traj_mutant(F[ti]),
+            "replica": traj_replica(F[ti]),
+            "frame_index_local": int(local_i),
+            "frame_index_original": get_frame_index_original(frame_idx_list, ti, local_i),
+            "aloop_rmsd_nm": float(ACT_rmsd_nm_list[ti][local_i]),
+            "aloop_state": int(ACT_state[ti][local_i]),
+            "alphaC_hinge_dist_nm": float(alphaC_hinge_dist_per_traj[ti][local_i]),
+            "pocket_front_dist_nm": float(per_traj_front[ti][local_i]),
+            "pocket_dfg_dist_nm": float(np.linalg.norm(0.0) if False else per_traj_front[ti][local_i] * 0 + per_traj_front[ti][local_i]),
+            "pocket_open_state": int(pocket_open_state_per_traj[ti][local_i]),
+        }
+        if local_i < len(DFG_chi1_sub[ti]):
+            row["dfg_chi1_deg"] = float(DFG_chi1_sub[ti][local_i])
+            row["dfg_state"] = int(DFG_state[ti][local_i])
+        else:
+            row["dfg_chi1_deg"] = np.nan
+            row["dfg_state"] = np.nan
+        if idx_lys is not None and idx_glu is not None and lys_glu_dist_per_traj[ti] is not None:
+            row["lys_glu_dist_nm"] = float(lys_glu_dist_per_traj[ti][local_i])
+            row["alphaC_compact_state"] = int(lys_glu_dist_per_traj[ti][local_i] <= thr_alphaC)
+        else:
+            row["lys_glu_dist_nm"] = np.nan
+            row["alphaC_compact_state"] = np.nan
+        frame_rows.append(row)
 
-dist_scores_f = RESULTS / "dist_scores.npy"
-dist_owner_f = RESULTS / "dist_x_owner.npy"
-ctlfit_scores_f = RESULTS / "actout_ctlfit_scores.npy"
-ctlfit_owner_f = RESULTS / "actout_ctlfit_x_owner.npy"
+# Replace placeholder pocket_dfg with true value
+frame_df = pd.DataFrame(frame_rows)
+true_pocket_dfg = []
+for ti in range(len(traj_aligned)):
+    for local_i in range(traj_aligned[ti].shape[0]):
+        true_pocket_dfg.append(float(np.linalg.norm(
+            traj_aligned[ti][local_i, mask_ploop, :].mean(axis=0) -
+            traj_aligned[ti][local_i, mask_dfg, :].mean(axis=0)
+        )))
+frame_df["pocket_dfg_dist_nm"] = true_pocket_dfg
+save_table(frame_df, "step3a_frame_metrics.csv")
 
-if dist_scores_f.exists() and dist_owner_f.exists():
-    scores_flat = np.load(dist_scores_f)
-    x_owner = np.load(dist_owner_f)
-    scores_name = "DISTANCE PCA"
-elif ctlfit_scores_f.exists() and ctlfit_owner_f.exists():
-    scores_flat = np.load(ctlfit_scores_f)
-    x_owner = np.load(ctlfit_owner_f)
-    scores_name = "ACT-OUT CTL-fit PCA"
-else:
-    raise FileNotFoundError(
-        "Need one of distance PCA outputs or ACT-OUT CTL-fit PCA outputs in results/ROS1."
-    )
+# Downsampled metrics table for PCA mapping
+pca_stride = 10
+frame_df_down = frame_df.groupby("traj_index", group_keys=False).apply(lambda x: x.iloc[::pca_stride].copy()).reset_index(drop=True)
+frame_df_down["frame_index_downsampled"] = frame_df_down.groupby("traj_index").cumcount().astype(int)
+save_table(frame_df_down, "step3a_frame_metrics_downsampled.csv")
 
-scores_flat = np.asarray(scores_flat)
-x_owner = np.asarray(x_owner, dtype=int)
-assert scores_flat.shape[0] == x_owner.shape[0]
-
-pc1 = scores_flat[:, 0].astype(float)
-thr = float(np.median(pc1))
-basin_flat = (pc1 > thr).astype(np.int8)
-basin = [basin_flat[x_owner == ti] for ti in range(len(F))]
-
-plt.figure(figsize=(6,4))
-plt.hist(pc1, bins=120)
-plt.axvline(thr, ls="--")
-plt.xlabel("PC1")
-plt.ylabel("count")
-plt.title(f"PC1 distribution ({scores_name}) + median split")
-save_current_figure("step3a_pc1_basin_hist.png")
-
-mutant_of = np.array([traj_mutant(p) for p in F], dtype=object)
-uniq_mut = np.unique(mutant_of)
-
-df_basin = pd.DataFrame({
-    "trajectory": F,
-    "mutant": mutant_of,
-    "replica": [traj_replica(p) for p in F],
-    "pc1_basin1_frac": [float(np.mean(x)) for x in basin],
-    "act_state_frac1": [float(np.mean(x)) for x in ACT_state],
-    "dfg_state_frac1": [float(np.mean(x)) for x in DFG_state],
-})
-save_table(df_basin, "step3a_basin_act_dfg_summary.csv")
-
+# ============================================
 # simple transitions
+# ============================================
 def switch_count(x01):
     x = np.asarray(x01, dtype=np.int8)
     if x.size <= 1:
@@ -483,14 +490,14 @@ def mean_dwell_frames(x01):
 
 df_trans = pd.DataFrame({
     "trajectory": F,
-    "mutant": mutant_of,
+    "mutant": mut_names,
     "replica": [traj_replica(p) for p in F],
-    "pc1_switches": [switch_count(x) for x in basin],
-    "pc1_mean_dwell_frames": [mean_dwell_frames(x) for x in basin],
     "act_switches": [switch_count(x) for x in ACT_state],
     "act_mean_dwell_frames": [mean_dwell_frames(x) for x in ACT_state],
     "dfg_switches": [switch_count(x) for x in DFG_state],
     "dfg_mean_dwell_frames": [mean_dwell_frames(x) for x in DFG_state],
+    "pocket_switches": [switch_count(x) for x in pocket_open_state_per_traj],
+    "pocket_mean_dwell_frames": [mean_dwell_frames(x) for x in pocket_open_state_per_traj],
 })
 save_table(df_trans, "step3a_transition_summary.csv")
 

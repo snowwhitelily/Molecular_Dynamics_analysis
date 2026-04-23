@@ -1,9 +1,10 @@
 # %%
 # ROS1 Analysis Pipeline
-# Script 2A: PCA and Clustering (ACT-IN + ACT-OUT)
+# Script 2A: PCA (ACT-IN + ACT-OUT)
 
 # %%
 import re
+import json
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -12,12 +13,6 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 from types import SimpleNamespace
 
-from scripts.clustering import run_hdbscan, run_dbscan
-from scripts.plotting import (
-    plot_occupancy_heatmap,
-    plot_cluster_population,
-    plot_pca_clusters,
-)
 
 from scripts.ros1_utils import (
     combine_masks,
@@ -32,9 +27,6 @@ from scripts.ros1_align import (
     align_traj_to_ref_by_fit,
 )
 
-from scripts.ros1_clustering import (
-    run_cluster_panel_varlen,
-)
 
 from scripts.timer import Timer
 tim = Timer()
@@ -64,6 +56,7 @@ print("Figure output folder:", FIG_DIR)
 # ============================================
 F = pd.read_csv(RESULTS / "F_paths.csv")["folder"].tolist()
 traj_aligned = np.load(RESULTS / "traj_aligned.npy", allow_pickle=True).tolist()
+frame_idx_list = np.load(RESULTS / "frame_idx_list.npy", allow_pickle=True).tolist()
 
 masks_npz = np.load(RESULTS / "masks.npz", allow_pickle=True)
 masks = {k: masks_npz[k] for k in masks_npz.files}
@@ -183,17 +176,24 @@ def plot_loading_by_residue(loadings, sel_mask, meta, pc, title_prefix, prefix):
 def downsample_traj_list(traj_list, stride):
     return [xyz[::stride].copy() for xyz in traj_list]
 
-def save_scores_table(scores_by_traj, F, prefix):
+def save_scores_table(scores_by_traj, F, prefix, frame_idx_small_by_traj):
     rows = []
     for ti, Z in enumerate(scores_by_traj):
         mutant = Path(F[ti]).parent.name
         replica = Path(F[ti]).name
+        frame_idx_orig = np.asarray(frame_idx_small_by_traj[ti]).astype(int)
+        if len(frame_idx_orig) != Z.shape[0]:
+            raise ValueError(
+                f"Frame-index mapping length mismatch for traj {ti}: "
+                f"{len(frame_idx_orig)} vs {Z.shape[0]}"
+            )
         for fi, row in enumerate(Z):
             rec = {
                 "traj_index": ti,
                 "mutant": mutant,
                 "replica": replica,
                 "frame_index_downsampled": fi,
+                "frame_index_original": int(frame_idx_orig[fi]),
             }
             for j, val in enumerate(row, start=1):
                 rec[f"PC{j}"] = float(val)
@@ -204,15 +204,22 @@ def save_scores_table(scores_by_traj, F, prefix):
     df.to_csv(out, index=False)
     print("Saved scores table:", out)
 
-def save_cluster_summary(cluster_result, prefix):
-    out = RESULTS / f"{prefix}_cluster_summary.txt"
+def save_pca_metadata(prefix, title_prefix, pca_stride, ncomponents):
+    out = RESULTS / f"{prefix}_pca_metadata.json"
+    payload = {
+        "prefix": prefix,
+        "title_prefix": title_prefix,
+        "pca_stride": int(pca_stride),
+        "ncomponents": int(ncomponents),
+    }
     with open(out, "w") as f:
-        f.write(str(cluster_result))
-    print("Saved cluster summary:", out)
+        json.dump(payload, f, indent=2)
+    print("Saved PCA metadata:", out)
 
 def run_pca_block(traj_list, sel_mask, title_prefix, prefix, traj_colors):
     with tim(f"{title_prefix}: vectorizing downsampled conformations"):
         traj_small = downsample_traj_list(traj_list, PCA_STRIDE)
+        frame_idx_small_by_traj = [np.asarray(frame_idx_list[ti])[::PCA_STRIDE].copy() for ti in range(len(F))]
 
         all_frames = []
         for xyz in traj_small:
@@ -252,7 +259,7 @@ def run_pca_block(traj_list, sel_mask, title_prefix, prefix, traj_colors):
     scores_by_traj = [scores_flat[X_owner == ti].copy() for ti in range(len(F))]
     print(f"{title_prefix} scores prepared.")
 
-    save_scores_table(scores_by_traj, F, prefix)
+    save_scores_table(scores_by_traj, F, prefix, frame_idx_small_by_traj)
 
     for a, b in PLOT_PAIRS:
         fig, ax = plt.subplots(figsize=(9, 9))
@@ -275,26 +282,6 @@ def run_pca_block(traj_list, sel_mask, title_prefix, prefix, traj_colors):
         prefix=prefix,
     )
 
-    cluster_result = run_cluster_panel_varlen(
-        scores_flat=scores_flat,
-        x_owner=X_owner,
-        F=F,
-        prefix=prefix,
-        title_prefix=title_prefix,
-        n_pcs=5,
-        min_cluster_size=200,
-        eps=0.9,
-        min_samples=60,
-        run_hdbscan=run_hdbscan,
-        run_dbscan=run_dbscan,
-        plot_occupancy_heatmap=plot_occupancy_heatmap,
-        plot_cluster_population=plot_cluster_population,
-        plot_pca_clusters=plot_pca_clusters,
-        display_fn=print,
-    )
-
-    save_cluster_summary(cluster_result, prefix)
-
     plot_loading_by_residue(loadings, sel_mask, meta, pc=1, title_prefix=f"{title_prefix} PCA", prefix=prefix)
     plot_loading_by_residue(loadings, sel_mask, meta, pc=2, title_prefix=f"{title_prefix} PCA", prefix=prefix)
 
@@ -302,6 +289,7 @@ def run_pca_block(traj_list, sel_mask, title_prefix, prefix, traj_colors):
     np.save(RESULTS / f"{prefix}_mean.npy", mean)
     np.save(RESULTS / f"{prefix}_scores.npy", scores_flat)
     np.save(RESULTS / f"{prefix}_x_owner.npy", X_owner)
+    save_pca_metadata(prefix, title_prefix, PCA_STRIDE, NCOMPONENTS)
     print("Saved arrays:", prefix)
 
     return {
@@ -312,7 +300,6 @@ def run_pca_block(traj_list, sel_mask, title_prefix, prefix, traj_colors):
         "scores_by_traj": [z.copy() for z in scores_by_traj],
         "F": np.array(F, dtype=object),
         "sele": sel_mask.copy(),
-        "cluster_results": cluster_result,
         "pca_stride": PCA_STRIDE,
     }
 
@@ -379,7 +366,7 @@ PCA_ACT_OUT = run_pca_block(
 print("Script 2A completed:")
 print("- ACT-IN")
 print("- ACT-OUT")
-print("Flow used: Scree -> Scores -> Clusters -> Loadings -> first 10% / last 10%")
+print("Flow used: Scree -> Scores -> Loadings -> first 10% / last 10%")
 print("Mode used: exploratory downsampled PCA, stride =", PCA_STRIDE)
 print("Saved figures to:", FIG_DIR)
-print("Saved analysis outputs to:", RESULTS)
+print("Saved PCA outputs to:", RESULTS)

@@ -1,9 +1,16 @@
+import json
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
 
 def mutant_names_from_F(F):
-    return np.array([p.split("/")[0] for p in F], dtype=object)
+    return np.array([Path(p).parent.name for p in F], dtype=object)
+
+
+def replica_names_from_F(F):
+    return np.array([Path(p).name for p in F], dtype=object)
 
 
 def occ_table_from_owner(F, x_owner, labels):
@@ -15,12 +22,129 @@ def occ_table_from_owner(F, x_owner, labels):
 
     df = pd.DataFrame({
         "mutant": frame_mutant,
-        "state": np.asarray(labels).astype(int)
+        "state": np.asarray(labels).astype(int),
     })
 
     counts = df.groupby(["mutant", "state"]).size().unstack(fill_value=0).sort_index()
     fracs = counts.div(counts.sum(axis=1), axis=0)
     return counts, fracs
+
+
+def per_replica_occ_table_from_owner(F, x_owner, labels):
+    traj_mutant = mutant_names_from_F(F)
+    traj_replica = replica_names_from_F(F)
+    traj_idx = np.asarray(x_owner).astype(int)
+
+    df = pd.DataFrame({
+        "traj_index": traj_idx,
+        "mutant": traj_mutant[traj_idx],
+        "replica": traj_replica[traj_idx],
+        "state": np.asarray(labels).astype(int),
+    })
+    counts = (
+        df.groupby(["traj_index", "mutant", "replica", "state"])
+        .size()
+        .reset_index(name="count")
+    )
+    counts["fraction"] = counts.groupby("traj_index")["count"].transform(lambda s: s / s.sum())
+    return counts
+
+
+def build_frame_cluster_table(
+    F,
+    x_owner,
+    labels_hdb,
+    labels_db,
+    frame_index_downsampled=None,
+    frame_index_original=None,
+):
+    x_owner = np.asarray(x_owner).astype(int)
+    labels_hdb = np.asarray(labels_hdb).astype(int)
+    labels_db = np.asarray(labels_db).astype(int)
+
+    if frame_index_downsampled is None:
+        seen = np.zeros(len(F), dtype=int)
+        frame_index_downsampled = np.empty(len(x_owner), dtype=int)
+        for i, ti in enumerate(x_owner):
+            frame_index_downsampled[i] = seen[ti]
+            seen[ti] += 1
+    else:
+        frame_index_downsampled = np.asarray(frame_index_downsampled).astype(int)
+
+    if frame_index_original is None:
+        frame_index_original = frame_index_downsampled.copy()
+    else:
+        frame_index_original = np.asarray(frame_index_original).astype(int)
+
+    rows = []
+    for i, ti in enumerate(x_owner):
+        p = Path(F[int(ti)])
+        rows.append({
+            "traj_index": int(ti),
+            "mutant": p.parent.name,
+            "replica": p.name,
+            "frame_index_downsampled": int(frame_index_downsampled[i]),
+            "frame_index_original": int(frame_index_original[i]),
+            "cluster_hdb": int(labels_hdb[i]),
+            "cluster_db": int(labels_db[i]),
+        })
+    return pd.DataFrame(rows)
+
+
+def save_cluster_outputs(
+    cluster_result,
+    F,
+    x_owner,
+    prefix,
+    results_dir,
+    frame_index_downsampled=None,
+    frame_index_original=None,
+    n_pcs=None,
+    min_cluster_size=None,
+    eps=None,
+    min_samples=None,
+):
+    results_dir = Path(results_dir)
+    results_dir.mkdir(parents=True, exist_ok=True)
+
+    labels_hdb = cluster_result["labels_hdb"]
+    labels_db = cluster_result["labels_db"]
+
+    cluster_df = build_frame_cluster_table(
+        F=F,
+        x_owner=x_owner,
+        labels_hdb=labels_hdb,
+        labels_db=labels_db,
+        frame_index_downsampled=frame_index_downsampled,
+        frame_index_original=frame_index_original,
+    )
+    cluster_df.to_csv(results_dir / f"{prefix}_cluster_labels.csv", index=False)
+
+    cluster_result["counts_hdb"].to_csv(results_dir / f"{prefix}_cluster_counts_hdb.csv")
+    cluster_result["frac_hdb"].to_csv(results_dir / f"{prefix}_cluster_frac_hdb.csv")
+    cluster_result["counts_db"].to_csv(results_dir / f"{prefix}_cluster_counts_db.csv")
+    cluster_result["frac_db"].to_csv(results_dir / f"{prefix}_cluster_frac_db.csv")
+
+    per_replica_occ_table_from_owner(F, x_owner, labels_hdb).to_csv(
+        results_dir / f"{prefix}_cluster_per_replica_hdb.csv", index=False
+    )
+    per_replica_occ_table_from_owner(F, x_owner, labels_db).to_csv(
+        results_dir / f"{prefix}_cluster_per_replica_db.csv", index=False
+    )
+
+    meta = {
+        "prefix": prefix,
+        "n_pcs": None if n_pcs is None else int(n_pcs),
+        "min_cluster_size": None if min_cluster_size is None else int(min_cluster_size),
+        "eps": None if eps is None else float(eps),
+        "min_samples": None if min_samples is None else int(min_samples),
+        "n_clusters_hdb": int(len(set(labels_hdb)) - (1 if -1 in labels_hdb else 0)),
+        "noise_fraction_hdb": float(np.mean(np.asarray(labels_hdb) == -1)),
+        "n_clusters_db": int(len(set(labels_db)) - (1 if -1 in labels_db else 0)),
+        "noise_fraction_db": float(np.mean(np.asarray(labels_db) == -1)),
+    }
+    with open(results_dir / f"{prefix}_cluster_params.json", "w") as f:
+        json.dump(meta, f, indent=2)
 
 
 def run_cluster_panel_varlen(
@@ -76,21 +200,24 @@ def run_cluster_panel_varlen(
     plot_occupancy_heatmap(
         frac_hdb,
         title=f"State Occupancy per Mutant ({title_prefix} Clusters)",
-        outpath=f"figures/{prefix}_occupancy_heatmap.png"
+        outpath=f"figures/{prefix}_occupancy_heatmap.png",
     )
 
     plot_cluster_population(
         labels_hdb,
         title=f"Cluster Population ({title_prefix} Representation)",
-        outpath=f"figures/{prefix}_cluster_population.png"
+        outpath=f"figures/{prefix}_cluster_population.png",
     )
 
     plot_pca_clusters(
         np.asarray(scores_flat)[:, 0],
         np.asarray(scores_flat)[:, 1],
         labels_hdb,
-        title=f"{title_prefix} PCA — HDBSCAN Clusters",
-        outpath=f"figures/{prefix}_pca_clusters.png"
+        title=(
+            f"{title_prefix} PCA — HDBSCAN Clusters\n"
+            f"clustered in PC1-PC{n_pcs}, projected onto PC1-PC2"
+        ),
+        outpath=f"figures/{prefix}_pca_clusters.png",
     )
 
     return {
@@ -160,13 +287,13 @@ def run_cluster_panel_equal(
     plot_occupancy_heatmap(
         frac_hdb,
         title=f"State Occupancy per Mutant ({title_prefix} Clusters)",
-        outpath=f"figures/{prefix}_occupancy_heatmap.png"
+        outpath=f"figures/{prefix}_occupancy_heatmap.png",
     )
 
     plot_cluster_population(
         labels_hdb,
         title=f"Cluster Population ({title_prefix} Representation)",
-        outpath=f"figures/{prefix}_cluster_population.png"
+        outpath=f"figures/{prefix}_cluster_population.png",
     )
 
     flat = scores_3d.reshape(-1, ncomp)
@@ -174,8 +301,11 @@ def run_cluster_panel_equal(
         flat[:, 0],
         flat[:, 1],
         labels_hdb,
-        title=f"{title_prefix} PCA — HDBSCAN Clusters",
-        outpath=f"figures/{prefix}_pca_clusters.png"
+        title=(
+            f"{title_prefix} PCA — HDBSCAN Clusters\n"
+            f"clustered in PC1-PC{n_pcs}, projected onto PC1-PC2"
+        ),
+        outpath=f"figures/{prefix}_pca_clusters.png",
     )
 
     return {

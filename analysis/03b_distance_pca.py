@@ -35,6 +35,7 @@ def save_current_figure(filename: str):
 
 F = pd.read_csv(RESULTS / "F_paths.csv")["folder"].tolist()
 traj_aligned = np.load(RESULTS / "traj_aligned.npy", allow_pickle=True).tolist()
+frame_idx_list = np.load(RESULTS / "frame_idx_list.npy", allow_pickle=True).tolist()
 masks_npz = np.load(RESULTS / "masks.npz", allow_pickle=True)
 masks = {k: masks_npz[k] for k in masks_npz.files}
 selection = (RESULTS / "selection.txt").read_text().strip()
@@ -83,6 +84,7 @@ if aloop_owner_f.exists():
 
 D_list = []
 traj_id_list = []
+frame_orig_list = []
 fform_list = []
 xmask_list = []
 
@@ -93,6 +95,7 @@ for ti, xyz in enumerate(traj_aligned):
     D_i = Dij.reshape(xyz.shape[0], -1).astype(np.float32)
     D_list.append(D_i)
     traj_id_list.append(np.full(xyz.shape[0], ti, dtype=int))
+    frame_orig_list.append(np.asarray(frame_idx_list[ti]).astype(int))
     fform_i = np.zeros(xyz.shape[0], dtype=int)
     fform_list.append(fform_i)
 
@@ -103,6 +106,7 @@ for ti, xyz in enumerate(traj_aligned):
 
 D = np.vstack(D_list)
 traj_id_dist = np.concatenate(traj_id_list)
+frame_orig_dist = np.concatenate(frame_orig_list)
 fform_flat_dist = np.concatenate(fform_list)
 xmask_dist = np.concatenate(xmask_list)
 
@@ -128,6 +132,7 @@ X_owner_dist = traj_id_dist.copy()
 
 yscores_dist_x = yscores_dist[xmask_dist]
 traj_id_dist_x = traj_id_dist[xmask_dist]
+frame_orig_dist_x = frame_orig_dist[xmask_dist]
 fform_flat_dist_x = fform_flat_dist[xmask_dist]
 
 print("yscores_dist_x:", yscores_dist_x.shape)
@@ -161,6 +166,7 @@ save_current_figure("step3b_distance_pca_pc1_pc2.png")
 
 scores_df = pd.DataFrame({
     "traj_index": traj_id_dist,
+    "frame_index_original": frame_orig_dist,
     "PC1": yscores_dist[:, 0],
     "PC2": yscores_dist[:, 1],
     "PC3": yscores_dist[:, 2],

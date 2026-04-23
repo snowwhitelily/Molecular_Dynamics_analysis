@@ -529,4 +529,13 @@ with open(RESULTS / "colors.txt", "w") as f:
 with open(RESULTS / "nrep.txt", "w") as f:
     f.write(str(nrep))
 
+np.save(
+    RESULTS / "frame_idx_list.npy",
+    np.array(frame_idx_list, dtype=object),
+    allow_pickle=True
+)
+
+with open(RESULTS / "nframes_sub.txt", "w") as f:
+    f.write(str(nframes_sub))
+
 print("Saved preprocessing outputs to:", RESULTS)
