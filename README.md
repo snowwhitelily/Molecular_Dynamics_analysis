@@ -1,54 +1,166 @@
-# ROS1 Kinase Mutant MD Analysis Report
+# ROS1 Kinase Mutant Molecular Dynamics Analysis
 
 ## Summary
 
-This project investigates the conformational dynamics of ROS1 kinase mutants using molecular dynamics simulations and PCA-based structural analysis.
+This project investigates the conformational dynamics of ROS1 kinase variants using molecular dynamics simulations, dimensionality reduction, structural-state discovery, transition analysis, and docking-ready receptor selection.
 
-The goal is to identify mutation-dependent shifts in structural sampling that may contribute to altered kinase behavior and inhibitor resistance.
+The goal is to identify mutation-dependent shifts in kinase conformational sampling that may contribute to altered signaling behavior, activation-state preference, and inhibitor resistance.
 
-## Analyses Performed
+---
 
-- Global kinase PCA including the activation loop (ACT-IN)
-- Global kinase PCA excluding the activation loop (ACT-OUT)
+## Variant Scope
+
+This project analyzes a broad panel of approximately 39 ROS1 kinase variants using molecular dynamics–based conformational analysis.
+
+From this larger panel, a focused subset is selected for deeper downstream studies (LDA, docking, and potential complex MD):
+
+- WT
+- Q2022P
+- Q2022P_S1986F
+- Q2022P_S1986Y
+
+---
+
+## Workflow Overview
+
+![ROS1 Pipeline Flowchart](docs/ROS1_pipeline_flowchart.png)
+
+Source file: `docs/ROS1_pipeline_flowchart.md`
+
+---
+
+## Main Analyses Performed
+
+### Stage 1 — Preprocessing
+
+- trajectory loading
+- atom selection harmonization
+- alignment to reference structure
+- reusable coordinate arrays
+- RMSD / RMSF generation
+
+### Stage 2 — Coordinate PCA Spaces
+
+- Global kinase PCA including activation loop (ACT-IN)
+- Global kinase PCA excluding activation loop (ACT-OUT)
 - N-terminal lobe PCA
 - C-terminal lobe PCA
-- Orientation PCA
 - Activation loop PCA
-- Tyrosine loop PCA
-- Density-based clustering and occupancy analysis
+- CTL-fit PCA
+- Additional selected structural subspace PCA
+
+### Stage 3 — Structural Interpretation
+
+- A-loop displacement metrics
+- DFG χ1 / motif-state metrics
+- αC-helix movement metrics
+- ATP pocket geometry proxies
+- contact / distance metrics
+
+### Stage 4 — Basin Discovery
+
+- density-based clustering (HDBSCAN / DBSCAN)
+- occupancy analysis
+- representative basin structures
+
+### Stage 5 — Dynamics Layer
+
+- basin transition analysis
+- switch frequencies
+- dwell times
+- mutant vs WT kinetic behavior
+
+### Stage 6 — Free Energy Landscape
+
+- PCA density landscapes
+- stable basin detection
+- metastable region interpretation
+
+### Stage 7 — Supervised Comparisons
+
+- pairwise LDA
+- WT vs mutant separation
+- Q2022P-family discrimination
+
+### Stage 8 — Docking Branch (Q2022P Subset)
+
+- representative receptor extraction
+- receptor / ligand PDBQT preparation
+- AutoDock Vina docking
+- docking rank comparison
+- optional protein-ligand MD refinement
+
+---
 
 ## Main Outputs
 
 The analysis generates:
 
-- PCA projections for multiple structural representations
-- Cluster population plots
-- Occupancy heatmaps
-- Representative structures for structural interpretation
-- PCA- and LDA-derived structures for visualization in PyMOL
+- PCA score arrays
+- explained variance summaries
+- PCA scatter plots
+- occupancy heatmaps
+- clustering labels
+- FEL maps
+- transition matrices
+- dwell-time summaries
+- LDA projections
+- representative structures
+- docking receptor structures
+- docking score rankings
+- publication-quality figures
 
-## Repository Locations
+---
 
-Primary analysis notebook:
+## Repository Structure
 
-`analysis/MD_final_pipeline.ipynb`
+```text
+Molecular_Dynamics_analysis/
+├── README.md
+├── REPORT.md
+├── analysis/
+├── figures/
+├── results/
+├── trajectories/
+├── structures/
+├── md_setup/
+├── pymol/
+└── docs/
+```
 
-Generated figures:
+## Important Locations
 
-`analysis/figures/`
+Primary scripts: `analysis/`  
+Slurm launchers: `analysis/slurm/`  
+Generated results: `results/ROS1/`  
+Generated figures: `figures/ROS1/ros1_prepared_final/`  
+Project workflow and notes: `docs/`  
+PyMOL helpers: `pymol/`
 
-Helper analysis scripts:
+---
 
-`analysis/scripts/`
+## Typical Execution Order
 
-Simulation setup scripts:
+1. Preprocessing  
+2. PCA spaces  
+3. Evaluate PCA outputs  
+4. Metrics  
+5. Free Energy Landscape (FEL)  
+6. Clustering  
+7. Metrics-to-cluster mapping  
+8. Cluster Transition Analysis  
+9. Distance PCA  
+10. LDA  
+11. Docking branch (optional)
 
-`md_setup/`
-
-PyMOL scripts:
-
-`pymol/`
+---
 
 ## Notes
 
-Because MD trajectory files are large, full simulation data may not be stored directly in this repository.
+- Large MD trajectories may not be stored directly in the repository.
+- Scripts are designed for HPC execution using Slurm.
+- Notebooks are primarily for exploration, interpretation, and final figures.
+- The pipeline is modular and expandable for future mutants or ligands.
+
+
+## Key Findings
