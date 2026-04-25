@@ -27,6 +27,7 @@ FIG_DIR.mkdir(parents=True, exist_ok=True)
 print("Running Script 3B")
 print("Figure output folder:", FIG_DIR)
 
+
 def save_current_figure(filename: str):
     out = FIG_DIR / filename
     plt.savefig(out, dpi=300, bbox_inches="tight")
@@ -74,14 +75,6 @@ print("CTL CA:", len(ctl_idx), "NTL CA:", len(ntl_idx))
 if len(ctl_idx) == 0 or len(ntl_idx) == 0:
     raise ValueError("CTL/NTL CA masks are empty.")
 
-# optional A-loop labels from 02c, if present
-labels_act = None
-aloop_owner_f = RESULTS / "aloop_x_owner.npy"
-aloop_scores_f = RESULTS / "aloop_scores.npy"
-if aloop_owner_f.exists():
-    # this uses cluster labels if they were saved separately; otherwise left None
-    pass
-
 D_list = []
 traj_id_list = []
 frame_orig_list = []
@@ -99,9 +92,7 @@ for ti, xyz in enumerate(traj_aligned):
     fform_i = np.zeros(xyz.shape[0], dtype=int)
     fform_list.append(fform_i)
 
-    split_idx = min(1, xyz.shape[0])
-    xmask_i = np.zeros(xyz.shape[0], dtype=bool)
-    xmask_i[split_idx:] = True
+    xmask_i = np.ones(xyz.shape[0], dtype=bool)
     xmask_list.append(xmask_i)
 
 D = np.vstack(D_list)

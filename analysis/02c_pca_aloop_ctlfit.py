@@ -2,32 +2,18 @@
 # ROS1 Analysis Pipeline
 # Script 2C: PCA (A-loop + CTL-fit whole kinase)
 
-# %%
-import json
 import numpy as np
 import pandas as pd
 import matplotlib
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 from pathlib import Path
 from types import SimpleNamespace
 
-
-from scripts.ros1_utils import (
-    combine_masks,
-    traj_frames_atoms,
-)
-
-from scripts.ros1_plots import (
-    plot_scree,
-)
-
-from scripts.ros1_align import (
-    align_traj_to_ref_by_fit,
-)
-
-
+from scripts.ros1_utils import combine_masks
+from scripts.ros1_align import align_traj_to_ref_by_fit
+from scripts.ros1_pca import run_pca_block, make_traj_colors
 from scripts.timer import Timer
+
 tim = Timer()
 
 PCA_STRIDE = 10
@@ -69,178 +55,15 @@ with open(RESULTS / "colors.txt") as f:
 with open(RESULTS / "nrep.txt") as f:
     nrep = int(f.read().strip())
 
-def save_current_figure(filename: str):
-    out = FIG_DIR / filename
-    plt.savefig(out, dpi=300, bbox_inches="tight")
-    plt.close()
-    print("Saved figure:", out)
-
-def make_traj_colors(F, colors, nrep):
-    traj_colors = np.repeat(np.array(colors), nrep, axis=0)
-    traj_colors = np.tile(traj_colors, int(np.ceil(len(F) / len(traj_colors))))[:len(F)]
-    return traj_colors
-
-def first_last_10_centroids(scores_by_traj):
-    first_pts = []
-    last_pts = []
-    for Z in scores_by_traj:
-        if Z.shape[0] == 0:
-            first_pts.append(np.array([np.nan, np.nan]))
-            last_pts.append(np.array([np.nan, np.nan]))
-            continue
-        k = max(1, int(np.ceil(0.10 * Z.shape[0])))
-        first_pts.append(Z[:k, :2].mean(axis=0))
-        last_pts.append(Z[-k:, :2].mean(axis=0))
-    return np.array(first_pts), np.array(last_pts)
-
-def plot_first_last_10_overlay(scores_by_traj, traj_colors, title, prefix):
-    first_pts, last_pts = first_last_10_centroids(scores_by_traj)
-    fig, ax = plt.subplots(figsize=(9, 9))
-    for ti, Z in enumerate(scores_by_traj):
-        if Z.shape[0] == 0:
-            continue
-        ax.scatter(Z[:, 0], Z[:, 1], s=2, c=[traj_colors[ti]], alpha=0.12, linewidths=0)
-        ax.scatter(first_pts[ti, 0], first_pts[ti, 1], s=80, c=[traj_colors[ti]],
-                   marker="o", edgecolors="black", linewidths=0.5, zorder=5)
-        ax.scatter(last_pts[ti, 0], last_pts[ti, 1], s=90, c=[traj_colors[ti]],
-                   marker="^", edgecolors="black", linewidths=0.5, zorder=6)
-        ax.plot([first_pts[ti, 0], last_pts[ti, 0]],
-                [first_pts[ti, 1], last_pts[ti, 1]],
-                c=traj_colors[ti], alpha=0.55, linewidth=1.2, zorder=4)
-    ax.set_aspect("equal", adjustable="box")
-    ax.set_xlabel("PC1")
-    ax.set_ylabel("PC2")
-    ax.set_title(title + "\n(circle = first 10%, triangle = last 10%)")
-    save_current_figure(f"{prefix}_first_last10.png")
-
-def plot_loading_by_residue(loadings, sel_mask, meta, pc, title_prefix, prefix):
-    sel_idx = np.where(sel_mask)[0].astype(int)
-    L = loadings[:, pc - 1].reshape((len(sel_idx), 3))
-    atom_contrib = np.sqrt((L ** 2).sum(axis=1))
-    sel_resids = meta.resids[sel_idx]
-    uniq = np.unique(sel_resids)
-    res_contrib = np.array([atom_contrib[sel_resids == r].sum() for r in uniq])
-    plt.figure(figsize=(11, 3))
-    plt.plot(uniq, res_contrib)
-    plt.xlabel("Residue id")
-    plt.ylabel(f"PC{pc} loading magnitude")
-    plt.title(f"{title_prefix}: residue contributions for PC{pc}")
-    save_current_figure(f"{prefix}_pc{pc}_loadings.png")
-
-def downsample_traj_list(traj_list, stride):
-    return [xyz[::stride].copy() for xyz in traj_list]
-
-def save_scores_table(scores_by_traj, F, prefix, frame_idx_small_by_traj):
-    rows = []
-    for ti, Z in enumerate(scores_by_traj):
-        mutant = Path(F[ti]).parent.name
-        replica = Path(F[ti]).name
-        frame_idx_orig = np.asarray(frame_idx_small_by_traj[ti]).astype(int)
-        if len(frame_idx_orig) != Z.shape[0]:
-            raise ValueError(
-                f"Frame-index mapping length mismatch for traj {ti}: "
-                f"{len(frame_idx_orig)} vs {Z.shape[0]}"
-            )
-        for fi, row in enumerate(Z):
-            rec = {
-                "traj_index": ti,
-                "mutant": mutant,
-                "replica": replica,
-                "frame_index_downsampled": fi,
-                "frame_index_original": int(frame_idx_orig[fi]),
-            }
-            for j, val in enumerate(row, start=1):
-                rec[f"PC{j}"] = float(val)
-            rows.append(rec)
-
-    df = pd.DataFrame(rows)
-    out = RESULTS / f"{prefix}_scores.csv"
-    df.to_csv(out, index=False)
-    print("Saved scores table:", out)
-
-def save_pca_metadata(prefix, title_prefix, pca_stride, ncomponents):
-    out = RESULTS / f"{prefix}_pca_metadata.json"
-    payload = {
-        "prefix": prefix,
-        "title_prefix": title_prefix,
-        "pca_stride": int(pca_stride),
-        "ncomponents": int(ncomponents),
-    }
-    with open(out, "w") as f:
-        json.dump(payload, f, indent=2)
-    print("Saved PCA metadata:", out)
-
-def run_pca_block(traj_list, sel_mask, title_prefix, prefix, traj_colors):
-    with tim(f"{title_prefix}: vectorizing downsampled conformations"):
-        traj_small = downsample_traj_list(traj_list, PCA_STRIDE)
-        frame_idx_small_by_traj = [np.asarray(frame_idx_list[ti])[::PCA_STRIDE].copy() for ti in range(len(F))]
-        all_frames = []
-        for xyz in traj_small:
-            all_frames.append(traj_frames_atoms(xyz, sel_mask))
-        all_frames = np.vstack(all_frames)
-        mean = all_frames.mean(axis=0)
-
-        X_list = []
-        X_owner = []
-        for ti, xyz in enumerate(traj_small):
-            dev = traj_frames_atoms(xyz, sel_mask) - mean
-            X_list.append(dev)
-            X_owner.append(np.full(dev.shape[0], ti, dtype=int))
-        X = np.vstack(X_list)
-        X_owner = np.concatenate(X_owner)
-
-    print(f"{title_prefix} X shape:", X.shape)
-
-    with tim(f"{title_prefix}: diagonalization (PCA)"):
-        C = X.T @ (X / len(X))
-        evals, loadings = np.linalg.eigh(C)
-        idx = np.argsort(evals)[::-1]
-        evals = evals[idx]
-        loadings = loadings[:, idx]
-
-    plot_scree(evals, n=25, title=f"{title_prefix} scree plot")
-    save_current_figure(f"{prefix}_scree.png")
-
-    scale = np.sqrt(mean.size)
-    with tim(f"{title_prefix}: projections on first {NCOMPONENTS} components"):
-        scores_flat = (X @ loadings[:, :NCOMPONENTS]) / scale
-
-    scores_by_traj = [scores_flat[X_owner == ti].copy() for ti in range(len(F))]
-    save_scores_table(scores_by_traj, F, prefix, frame_idx_small_by_traj)
-
-    for a, b in [(0,1), (0,2), (1,2), (0,3), (1,3)]:
-        fig, ax = plt.subplots(figsize=(9, 9))
-        for ti in range(len(F)):
-            Zi = scores_by_traj[ti]
-            ax.scatter(Zi[:, a], Zi[:, b], s=2, c=[traj_colors[ti]], alpha=0.15, linewidths=0)
-        ax.set_aspect("equal", adjustable="box")
-        ax.set_xlabel(f"PC{a+1}")
-        ax.set_ylabel(f"PC{b+1}")
-        ax.set_title(f"{title_prefix} scores plot (PC{a+1} vs PC{b+1})")
-        save_current_figure(f"{prefix}_pc{a+1}_pc{b+1}.png")
-
-    plot_first_last_10_overlay(scores_by_traj, traj_colors, f"{title_prefix} PCA", prefix)
-    plot_loading_by_residue(loadings, sel_mask, meta, 1, f"{title_prefix} PCA", prefix)
-    plot_loading_by_residue(loadings, sel_mask, meta, 2, f"{title_prefix} PCA", prefix)
-
-    np.save(RESULTS / f"{prefix}_loadings.npy", loadings)
-    np.save(RESULTS / f"{prefix}_mean.npy", mean)
-    np.save(RESULTS / f"{prefix}_scores.npy", scores_flat)
-    np.save(RESULTS / f"{prefix}_x_owner.npy", X_owner)
-    save_pca_metadata(prefix, title_prefix, PCA_STRIDE, NCOMPONENTS)
-    print("Saved arrays:", prefix)
-
 traj_colors = make_traj_colors(F, colors, nrep)
 
-# A-loop = ACT region backbone
+# A-loop PCA
 sele_aloop = combine_masks(BB, ACT)
 fit_aloop = sele_aloop
-
 print("A-loop sele atoms:", int(sele_aloop.sum()))
 print("A-loop fit atoms:", int(fit_aloop.sum()))
 
-ref_aloop_centered = ref_centered.copy()
-ref_fit_aloop = ref_aloop_centered[fit_aloop]
+ref_fit_aloop = ref_centered[fit_aloop]
 ref_fit_aloop = ref_fit_aloop - ref_fit_aloop.mean(axis=0, keepdims=True)
 
 with tim("A-loop: aligning all trajectories on fit"):
@@ -252,20 +75,27 @@ PCA_ALOOP = run_pca_block(
     title_prefix="A-loop",
     prefix="aloop",
     traj_colors=traj_colors,
+    F=F,
+    frame_idx_list=frame_idx_list,
+    meta=meta,
+    results_dir=RESULTS,
+    fig_dir=FIG_DIR,
+    pca_stride=PCA_STRIDE,
+    ncomponents=NCOMPONENTS,
+    plot_pairs=PLOT_PAIRS,
+    timer=tim,
 )
 
-# whole-kinase after CTL fit
+# Whole-kinase PCA after CTL fit
 sele_ctlfit = combine_masks(BB, BODY)
 fit_ctlfit = combine_masks(BB, CTL)
-
 print("CTL-fit sele atoms:", int(sele_ctlfit.sum()))
 print("CTL-fit fit atoms:", int(fit_ctlfit.sum()))
 
-ref_ctlfit_centered = ref_centered.copy()
-ref_fit_ctlfit = ref_ctlfit_centered[fit_ctlfit]
+ref_fit_ctlfit = ref_centered[fit_ctlfit]
 ref_fit_ctlfit = ref_fit_ctlfit - ref_fit_ctlfit.mean(axis=0, keepdims=True)
 
-with tim("CTL-fit: aligning all trajectories on fit"):
+with tim("ACT-OUT CTL-fit: aligning all trajectories on CTL"):
     traj_ctlfit = [align_traj_to_ref_by_fit(xyz, fit_ctlfit, ref_fit_ctlfit) for xyz in traj_aligned]
 
 PCA_CTLFIT = run_pca_block(
@@ -274,6 +104,15 @@ PCA_CTLFIT = run_pca_block(
     title_prefix="ACT-OUT CTL-fit",
     prefix="actout_ctlfit",
     traj_colors=traj_colors,
+    F=F,
+    frame_idx_list=frame_idx_list,
+    meta=meta,
+    results_dir=RESULTS,
+    fig_dir=FIG_DIR,
+    pca_stride=PCA_STRIDE,
+    ncomponents=NCOMPONENTS,
+    plot_pairs=PLOT_PAIRS,
+    timer=tim,
 )
 
 print("Script 2C completed:")
