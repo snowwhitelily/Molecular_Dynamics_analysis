@@ -10,8 +10,9 @@
 
 1. Run 2A / 2B / 2C PCA jobs
 2. Evaluate PCA outputs
-3. Select best PCA spaces
-4. Run FEL + clustering
+3. Run PCA stride verification
+4. Select best PCA spaces
+5. Run FEL + clustering
 
 ## Current Best PCA Candidates
 

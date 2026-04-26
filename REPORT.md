@@ -16,6 +16,7 @@ Unlike the README, this document focuses on progress, findings, decisions, and n
 
 - Preprocessing pipeline completed
 - Main PCA scripts prepared
+- PCA stride validation script prepared
 - Metrics / FEL / clustering / transition scripts prepared
 - LDA scripts prepared
 - Docking branch prepared
@@ -52,18 +53,19 @@ Used for:
 
 ## Planned Execution Order
 
-1. Preprocessing  
-2. PCA spaces  
-3. Evaluate PCA outputs  
-4. Structural metrics  
-5. Free Energy Landscape  
-6. Clustering  
-7. Metrics-to-cluster mapping  
-8. Basin transition analysis  
-9. Distance PCA  
-10. LDA  
-11. Docking branch  
-12. Optional complex MD
+1. Preprocessing
+2. PCA spaces
+3. Evaluate PCA outputs
+4. Verify PCA stride stability
+5. Structural metrics
+6. Free Energy Landscape
+7. Clustering
+8. Metrics-to-cluster mapping
+9. Basin transition analysis
+10. Distance PCA
+11. LDA
+12. Docking branch
+13. Optional complex MD
 
 ---
 
@@ -98,6 +100,7 @@ This section will later contain:
 - Pipeline successfully evolved from notebook workflow into modular HPC workflow.
 - Scripts are organized for reproducible Slurm execution.
 - Interpretation phase begins after PCA outputs complete.
+- PCA subsampling stride (10) will be validated against denser sampling (1 and 5) before clustering.
 
 ---
 

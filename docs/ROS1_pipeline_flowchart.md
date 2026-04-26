@@ -13,9 +13,9 @@ Master roadmap for the ROS1 molecular dynamics analysis project.
 3. `02b_pca_ntl_ctl.py`
 4. `02c_pca_aloop_ctlfit.py`
 5. Evaluate PCA outputs
-6. `03a_metrics_states.py`
-7. `03c_free_energy_landscape.py`
-8. `02d_cluster_selected_pcas.py`
+6. `02c_verify_pca_stride.py`
+7. `03a_metrics_states.py`
+8. `03c_free_energy_landscape.py`
 9. `02e_map_metrics_to_clusters.py`
 10. `02f_cluster_transitions.py`
 11. `03b_distance_pca.py`
@@ -28,24 +28,35 @@ Master roadmap for the ROS1 molecular dynamics analysis project.
 
 ## Workflow Diagram
 
+Replace your current Mermaid block inside ROS1_pipeline_flowchart.md with this updated version:
+
 ```mermaid
 flowchart TD
     A[Preprocessing] --> B[PCA Spaces]
     B --> C[Evaluate PCA Outputs]
-    C --> D[Structural Metrics]
-    C --> E[Free Energy Landscape]
+
+    C --> V[Verify PCA Stride Stability]
+
+    V --> D[Structural Metrics]
+    V --> E[Free Energy Landscape]
+
     E --> F[Selected PCA Clustering]
     F --> G[Metrics to Clusters]
     F --> H[Cluster Transitions]
+
     G --> I[Biological Interpretation]
     H --> I
     D --> I
+
     I --> J[Distance PCA]
     J --> K[LDA Comparisons]
+
     I --> L[Docking Branch]
     L --> M[Optional Complex MD]
+
     K --> N[Final Story]
     M --> N
+
     N --> O[Figures / Thesis / Dashboard]
 ```
 

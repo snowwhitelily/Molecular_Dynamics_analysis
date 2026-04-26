@@ -48,6 +48,7 @@ Source file: `docs/ROS1_pipeline_flowchart.md`
 - Activation loop PCA
 - CTL-fit PCA
 - Additional selected structural subspace PCA
+- PCA stride stability verification (comparison of strides 1, 5, and 10)
 
 ### Stage 3 — Structural Interpretation
 
@@ -141,17 +142,18 @@ PyMOL helpers: `pymol/`
 
 ## Typical Execution Order
 
-1. Preprocessing  
-2. PCA spaces  
-3. Evaluate PCA outputs  
-4. Metrics  
-5. Free Energy Landscape (FEL)  
-6. Clustering  
-7. Metrics-to-cluster mapping  
-8. Cluster Transition Analysis  
-9. Distance PCA  
-10. LDA  
-11. Docking branch (optional)
+1. Preprocessing
+2. PCA spaces
+3. Evaluate PCA outputs
+4. Verify PCA stride stability
+5. Metrics
+6. Free Energy Landscape (FEL)
+7. Clustering
+8. Metrics-to-cluster mapping
+9. Cluster Transition Analysis
+10. Distance PCA
+11. LDA
+12. Docking branch (optional)
 
 ---
 
