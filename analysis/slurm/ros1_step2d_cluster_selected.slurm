@@ -3,7 +3,7 @@
 #SBATCH --output=/homes/lkgyammerah/Molecular_Dynamics_analysis/results/ROS1/step2d_cluster_selected_%j.out
 #SBATCH --error=/homes/lkgyammerah/Molecular_Dynamics_analysis/results/ROS1/step2d_cluster_selected_%j.err
 #SBATCH --time=12:00:00
-#SBATCH --mem=64G
+#SBATCH --mem=128G
 #SBATCH --cpus-per-task=4
 #SBATCH --export=NONE
 

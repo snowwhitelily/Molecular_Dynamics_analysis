@@ -3,7 +3,7 @@
 #SBATCH --output=/homes/lkgyammerah/Molecular_Dynamics_analysis/results/ROS1/step5b_vina_prep_%j.out
 #SBATCH --error=/homes/lkgyammerah/Molecular_Dynamics_analysis/results/ROS1/step5b_vina_prep_%j.err
 #SBATCH --time=04:00:00
-#SBATCH --mem=16G
+#SBATCH --mem=128G
 #SBATCH --cpus-per-task=1
 #SBATCH --export=NONE
 
