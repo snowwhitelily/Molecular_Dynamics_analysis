@@ -111,3 +111,6 @@ figures/ROS1_archive_old_dataset/
 !*.yml
 !*.yaml
 !*.json
+
+results/
+figures/
