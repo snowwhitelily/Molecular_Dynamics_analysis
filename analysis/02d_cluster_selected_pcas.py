@@ -1,6 +1,9 @@
 # %%
 # ROS1 Analysis Pipeline
 # Script 2D: Cluster Selected PCA Spaces
+#
+# FIX: Added F1994L exclusion — filters F and frame_idx_list
+# to match the PCA that was run without F1994L.
 
 import argparse
 import shutil
@@ -22,6 +25,13 @@ FIG_ROOT = BASE / "figures" / "ROS1" / "ros1_prepared_final" / "step2d_selected_
 FIG_ROOT.mkdir(parents=True, exist_ok=True)
 LOCAL_FIG_DIR = Path("figures")
 LOCAL_FIG_DIR.mkdir(exist_ok=True)
+
+# ============================================================
+# EXCLUDE MUTANTS NOT IN ANALYSIS
+# F1994L excluded per supervisor instruction:
+# started in inactive form, not comparable to active-form panel
+# ============================================================
+EXCLUDE_MUTANTS = {"F1994L"}
 
 
 def parse_args():
@@ -47,6 +57,14 @@ def main():
     args = parse_args()
     F = pd.read_csv(RESULTS / "F_paths.csv")["folder"].tolist()
     frame_idx_list = np.load(RESULTS / "frame_idx_list.npy", allow_pickle=True).tolist()
+
+    # Apply exclusion
+    keep = [i for i, f in enumerate(F)
+            if Path(f).parent.name not in EXCLUDE_MUTANTS]
+    F              = [F[i] for i in keep]
+    frame_idx_list = [frame_idx_list[i] for i in keep]
+    print(f"Excluded mutants: {EXCLUDE_MUTANTS}")
+    print(f"Remaining trajectories: {len(F)}")
 
     prefixes = [x.strip() for x in args.prefixes.split(",") if x.strip()]
     print("Selected PCA prefixes:", prefixes)

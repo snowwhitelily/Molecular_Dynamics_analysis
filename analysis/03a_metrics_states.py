@@ -81,6 +81,21 @@ def get_frame_index_original(frame_idx_list, ti, local_i):
 F = pd.read_csv(RESULTS / "F_paths.csv")["folder"].tolist()
 traj_aligned = np.load(RESULTS / "traj_aligned.npy", allow_pickle=True).tolist()
 frame_idx_list = np.load(RESULTS / "frame_idx_list.npy", allow_pickle=True).tolist()
+
+# ============================================================
+# EXCLUDE MUTANTS NOT IN ANALYSIS
+# F1994L excluded per supervisor instruction:
+# started in inactive form, not comparable to active-form panel
+# ============================================================
+EXCLUDE_MUTANTS = {"F1994L"}
+keep = [i for i, f in enumerate(F)
+        if Path(f).parent.name not in EXCLUDE_MUTANTS]
+F              = [F[i] for i in keep]
+traj_aligned   = [traj_aligned[i] for i in keep]
+frame_idx_list = [frame_idx_list[i] for i in keep]
+print(f"Excluded mutants: {EXCLUDE_MUTANTS}")
+print(f"Remaining trajectories: {len(F)}")
+
 masks_npz = np.load(RESULTS / "masks.npz", allow_pickle=True)
 masks = {k: masks_npz[k] for k in masks_npz.files}
 selection = (RESULTS / "selection.txt").read_text().strip()
