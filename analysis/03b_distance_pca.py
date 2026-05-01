@@ -30,7 +30,6 @@ import os
 from pathlib import Path
 from types import SimpleNamespace
 
-import MDAnalysis as mda
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -38,7 +37,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.cm import get_cmap
 
-from scripts.ros1_utils import ensure_meta, combine_masks
+from scripts.ros1_utils import combine_masks
 from scripts.ros1_plots import plot_scree
 from scripts.timer import Timer
 
@@ -78,8 +77,6 @@ traj_aligned = np.load(RESULTS / "traj_aligned.npy", allow_pickle=True).tolist()
 frame_idx_list = np.load(RESULTS / "frame_idx_list.npy", allow_pickle=True).tolist()
 masks_npz = np.load(RESULTS / "masks.npz", allow_pickle=True)
 masks = {k: masks_npz[k] for k in masks_npz.files}
-selection = (RESULTS / "selection.txt").read_text().strip()
-
 meta = SimpleNamespace(
     resids=np.load(RESULTS / "meta_resids.npy", allow_pickle=True),
     names=np.load(RESULTS / "meta_names.npy", allow_pickle=True),
@@ -91,14 +88,9 @@ rep_names = [traj_replica(p) for p in F]
 
 # ============================================================
 # Define NTL and CTL CA atom index sets
+# meta is already loaded above as SimpleNamespace with
+# resids, names, resnames arrays — no ensure_meta needed
 # ============================================================
-meta_obj = ensure_meta(
-    meta=meta,
-    top=f"{F[0]}/{Path(F[0]).parent.name}-MD-prot.pdb",
-    selection=selection,
-    natoms=traj_aligned[0].shape[1]
-)
-
 CA   = masks["CA"]
 BODY = masks["BODY"]
 ACT  = masks["ACT"]

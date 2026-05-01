@@ -531,7 +531,6 @@ def main():
     print("=" * 60)
     print("ROS1 PCA STRIDE STABILITY VERIFICATION")
     print(f"Prefixes   : {prefixes}")
-    print(f"Traj index : {traj_index}")
     print(f"Strides    : {STRIDES_TO_TEST}")
     print(f"Output dir : {FIG_DIR}")
     print("=" * 60 + "\n")
@@ -540,11 +539,35 @@ def main():
     F, traj_aligned, frame_idx_list, masks, ref_centered, meta = \
         load_pipeline_outputs()
 
+    # ── resolve traj_index ───────────────────────────────────────────────────
+    # After F1994L exclusion the original hardcoded index (114) is out of range.
+    # If the requested index is out of range, automatically find WT replica 0
+    # instead of crashing.
     if traj_index >= len(F):
-        raise ValueError(
-            f"traj_index={traj_index} out of range (n_traj={len(F)}). "
-            "Choose a value between 0 and {len(F)-1}."
-        )
+        print(f"WARNING: traj_index={traj_index} is out of range after exclusions "
+              f"(n_traj={len(F)}).")
+        print("Searching for WT replica 0 automatically...")
+        wt_index = None
+        for i, f in enumerate(F):
+            p = Path(f)
+            if p.parent.name == "WT" and p.name in ("0", "rep0", "replica0"):
+                wt_index = i
+                break
+        # Fallback: find any WT trajectory
+        if wt_index is None:
+            for i, f in enumerate(F):
+                if Path(f).parent.name == "WT":
+                    wt_index = i
+                    break
+        if wt_index is None:
+            raise ValueError(
+                f"Could not find WT trajectory in F_paths.csv. "
+                f"Check that WT is not in EXCLUDE_MUTANTS."
+            )
+        traj_index = wt_index
+        print(f"Found WT at traj_index={traj_index}: {F[traj_index]}")
+    else:
+        print(f"Traj index : {traj_index} ({F[traj_index]})")
 
     traj_path = Path(F[traj_index])
     print(f"Selected trajectory : {traj_path.parent.name} / {traj_path.name}")
