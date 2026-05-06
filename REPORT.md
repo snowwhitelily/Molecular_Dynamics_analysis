@@ -8,7 +8,7 @@ Updated as new results are generated.
 
 ---
 
-## Current Project Status (April 2026)
+## Current Project Status 
 
 ### Pipeline Status
 
@@ -166,8 +166,3 @@ WT, Q2022P, Q2022P_S1986F, Q2022P_S1986Y
 6. Fill in Results chapter with actual numbers
 7. Complete Conclusion chapter
 
----
-
-## Last Updated
-
-April 30, 2026

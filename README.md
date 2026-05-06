@@ -145,9 +145,9 @@ Molecular_Dynamics_analysis/
 
 - All scripts exclude F1994L via `EXCLUDE_MUTANTS = {"F1994L"}` block
   inserted after loading F_paths.csv and traj_aligned.npy
-- FEL colour scale fixed at 0–2.5 kT across ALL plots (supervisor requirement)
-- Clustering run on actout_ctlfit only (aloop dropped per supervisor)
-- 03c default prefixes: actout_ctlfit,ctl (aloop removed)
+- FEL colour scale fixed at 0–2.5 kT across ALL plots 
+- Clustering run on actout_ctlfit only 
+- 03c default prefixes: actout_ctlfit,ctl 
 - Free energy formula: G = −kT ln(P), unit = kT at 300K
 
 ---
@@ -162,5 +162,4 @@ Molecular_Dynamics_analysis/
 | `figures/ROS1/ros1_prepared_final/` | All analysis figures |
 | `trajectories/ros1_prepared_final/` | XTC + PDB per mutant/replica |
 
-## Last Updated
-April 2026
+
