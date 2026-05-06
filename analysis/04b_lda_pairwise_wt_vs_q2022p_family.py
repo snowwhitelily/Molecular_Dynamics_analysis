@@ -18,6 +18,18 @@ import matplotlib.pyplot as plt
 
 from scripts.ros1_analysis_helpers import summarize_pair, lda_2class_direction
 
+# ── CONSISTENT COLOUR PALETTE (matches thesis and notebook) ──────────────────
+PALETTE = {
+    'WT':               '#1565C0',
+    'Q2022P':           '#E63946',
+    'Q2022P_S1986F':    '#F4511E',
+    'Q2022P_S1986Y':    '#F9A825',
+    'S1986F':           '#2E7D32',
+    'S1986Y':           '#66BB6A',
+}
+DEFAULT_C = '#78909C'
+def get_colour(name): return PALETTE.get(name, DEFAULT_C)
+
 # ============================================================
 # ARGUMENT PARSING
 # ============================================================
@@ -168,6 +180,7 @@ for A, B in pairs:
         idx   = y01 == val
         y_jit = np.random.normal(0, 0.02, size=idx.sum())
         plt.scatter(ld1_traj[idx], y_jit, s=100, alpha=0.85,
+                    color=get_colour(label), edgecolors='white', linewidths=0.5,
                     label=f"{label} (n={idx.sum()} replicas)")
     plt.xlabel("LD1 (trajectory means)")
     plt.yticks([])
@@ -205,12 +218,19 @@ for (A, B), R in pairwise_results.items():
         continue
 
     plt.figure(figsize=(8, 3))
-    plt.hist(vals_A, bins=60, alpha=0.55, density=True, label=A)
-    plt.hist(vals_B, bins=60, alpha=0.55, density=True, label=B)
-    plt.xlabel("LD1 (frame-level projection)")
-    plt.ylabel("Density")
-    plt.title(f"Frame-level overlap: {A} vs {B}")
-    plt.legend(frameon=False)
+    plt.hist(vals_A, bins=60, alpha=0.55, density=True, label=A, color=get_colour(A))
+    plt.hist(vals_B, bins=60, alpha=0.55, density=True, label=B, color=get_colour(B))
+    # Vertical mean lines — make the shift immediately obvious to the reader
+    plt.axvline(vals_A.mean(), color=get_colour(A), lw=2, ls='--', alpha=0.9,
+                label=f'{A} mean')
+    plt.axvline(vals_B.mean(), color=get_colour(B), lw=2, ls='--', alpha=0.9,
+                label=f'{B} mean')
+    plt.xlabel("LD1 (frame-level projection)", fontsize=11)
+    plt.ylabel("Density", fontsize=11)
+    plt.title(f"Frame-level overlap: {A} vs {B}", fontsize=12, fontweight='bold')
+    plt.gca().spines['top'].set_visible(False)
+    plt.gca().spines['right'].set_visible(False)
+    plt.legend(frameon=False, fontsize=9)
     save_fig(f"step4b_pairwise_lda_frames_{A}_vs_{B}.png")
 
     stats     = summarize_pair(A, B, ld1_frames, npair)

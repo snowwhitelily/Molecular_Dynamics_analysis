@@ -217,12 +217,12 @@ def plot_fel(pc1, pc2, G, xedges, yedges, title, fig_dir, filename, vmax=2.5):
         levels = np.linspace(zmin, zmax, nlev)
         plt.contour(Xc, Yc, G, levels=levels, linewidths=0.6, alpha=0.8)
 
-    # Scatter raw frame positions (very transparent, just for reference)
-    plt.scatter(pc1, pc2, s=2, alpha=0.08, linewidths=0, color="steelblue")
-
-    plt.xlabel("PC1")
-    plt.ylabel("PC2")
-    plt.title(title)
+    plt.xlabel("PC1 (actout_ctlfit)", fontsize=11)
+    plt.ylabel("PC2 (actout_ctlfit)", fontsize=11)
+    plt.title(title, fontsize=12, fontweight='bold')
+    # Remove top/right spines — reduce clutter
+    plt.gca().spines['top'].set_visible(False)
+    plt.gca().spines['right'].set_visible(False)
     save_current_figure(fig_dir, filename)
 
 
