@@ -71,7 +71,7 @@ def mutant_replica_from_F(F):
                 "traj_index": i,
                 "trajectory": str(p),
                 "mutant": p.parent.name,
-                "replica": p.name,
+                "replica": int(p.name),
                 "pdb": str(p / f"{p.parent.name}-MD-prot.pdb"),
                 "xtc": str(p / f"{p.parent.name}-MD-prot.xtc"),
             }
@@ -108,33 +108,47 @@ def main():
     for prefix in prefixes:
         print(f"\n=== Prefix: {prefix} ===")
         cluster_csv = RESULTS / f"{prefix}_cluster_labels.csv"
-        scores_csv = RESULTS / f"{prefix}_scores.csv"
+        scores_npy = RESULTS / f"{prefix}_scores.npy"
+        owner_npy  = RESULTS / f"{prefix}_x_owner.npy"
 
         if not cluster_csv.exists():
             raise FileNotFoundError(f"Missing cluster labels: {cluster_csv}")
-        if not scores_csv.exists():
-            raise FileNotFoundError(f"Missing scores table: {scores_csv}")
+        if not scores_npy.exists():
+            raise FileNotFoundError(f"Missing scores npy: {scores_npy}")
+        if not owner_npy.exists():
+            raise FileNotFoundError(f"Missing owner npy: {owner_npy}")
 
         dfc = pd.read_csv(cluster_csv)
-        dfs = pd.read_csv(scores_csv)
 
         if args.cluster_col not in dfc.columns:
             raise ValueError(f"{args.cluster_col} not found in {cluster_csv.name}")
 
+        # Build scores dataframe from npy files
+        scores_arr = np.load(scores_npy)
+        owner_arr  = np.load(owner_npy)
+        n_pcs = scores_arr.shape[1]
+        pc_names = [f"PC{i+1}" for i in range(n_pcs)]
+        dfs = pd.DataFrame(scores_arr, columns=pc_names)
+        dfs["traj_index"] = owner_arr.astype(int)
+        dfs["frame_index_downsampled"] = dfs.groupby("traj_index").cumcount()
+
+        # Merge scores with cluster labels on traj_index + frame_index_downsampled
+        # mutant/replica/frame_index_original all come from dfc
         df = dfs.merge(
-            dfc[
-                [
-                    "traj_index",
-                    "mutant",
-                    "replica",
-                    "frame_index_downsampled",
-                    "frame_index_original",
-                    args.cluster_col,
-                ]
-            ],
-            on=["traj_index", "mutant", "replica", "frame_index_downsampled", "frame_index_original"],
+            dfc[["traj_index", "mutant", "replica",
+                 "frame_index_downsampled", "frame_index_original",
+                 args.cluster_col]],
+            on=["traj_index", "frame_index_downsampled"],
             how="inner",
-        ).merge(meta_df, on=["traj_index", "trajectory", "mutant", "replica"], how="left")
+        )
+        # Merge pdb/xtc paths on mutant + replica only (traj_index differs
+        # between F_paths and cluster_labels because F1994L is excluded from
+        # scores/cluster files, shifting all subsequent traj_index values)
+        df = df.merge(
+            meta_df[["mutant", "replica", "traj_index", "pdb", "xtc"]]                .rename(columns={"traj_index": "traj_index_fpaths"}),
+            on=["mutant", "replica"],
+            how="left",
+        )
 
         df = df[df["mutant"].isin(Q_FAMILY)].copy()
         df = df[df[args.cluster_col] >= 0].copy()
@@ -195,7 +209,6 @@ def main():
                     "replica": rep_dom["replica"],
                     "frame_index_downsampled": int(rep_dom["frame_index_downsampled"]),
                     "frame_index_original": int(rep_dom["frame_index_original"]),
-                    "trajectory": rep_dom["trajectory"],
                     "pdb_source": rep_dom["pdb"],
                     "xtc_source": rep_dom["xtc"],
                     "output_pdb": str(dom_out),
