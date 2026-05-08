@@ -4,4 +4,9 @@ pandas
 scikit-learn
 hdbscan
 MDAnalysis
-Molly
+scipy
+seaborn
+rdkit
+meeko
+gemmi
+Pillow
