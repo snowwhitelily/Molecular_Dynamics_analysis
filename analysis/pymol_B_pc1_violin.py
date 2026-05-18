@@ -1,15 +1,18 @@
 """
-Script B: PC1 loading violin on WT structure using Tsjerk's princomp.py
-Loads WT trajectory frames, aligns on CTL, runs Princomp on Ca atoms,
-draws density-modulated cylinders coloured blue-white-red by PC1 loading.
+Script B: PC1 loading violin on WT structure using Tsjerk's princomp.py.
 
-Usage (from cluster):
+Loads all three WT trajectory replicas, aligns on CTL Cα atoms, runs PCA
+via Princomp, then draws density-modulated cylinders coloured blue-white-red
+by PC1 loading amplitude (the violin representation).
+
+Usage:
     cd /homes/lkgyammerah/Molecular_Dynamics_analysis
     pymol -c analysis/pymol_B_pc1_violin.py
 
 Output:
     figures/ROS1/ros1_prepared_final/pc1_violin_wt.png
     figures/ROS1/ros1_prepared_final/pc1_violin_wt_rotated.png
+    figures/ROS1/ros1_prepared_final/pc1_violin_wt.pse
 """
 
 import sys
@@ -17,7 +20,6 @@ import os
 import numpy as np
 from pymol import cmd, stored
 
-# ── Paths ─────────────────────────────────────────────────────────────────────
 BASE    = '/homes/lkgyammerah/Molecular_Dynamics_analysis'
 SCRIPTS = f'{BASE}/analysis/scripts'
 TRAJ    = f'{BASE}/trajectories/ros1_prepared_final'
@@ -29,7 +31,7 @@ sys.path.insert(0, SCRIPTS)
 from princomp import Princomp
 from colorinator import BWR
 
-# ── File-based debug logger ───────────────────────────────────────────────────
+# ── File-based debug log (PyMOL suppresses stdout) ───────────────────────────
 open(DEBUG, 'w').close()
 def dlog(msg):
     with open(DEBUG, 'a') as f:
@@ -37,7 +39,7 @@ def dlog(msg):
 
 dlog("=== Script B debug log ===")
 
-# ── Load WT trajectory ────────────────────────────────────────────────────────
+# ── Load all WT replicas ───────────────────────────────────────────────────────
 for rep in ['0', '1', '2']:
     xtc = f'{TRAJ}/WT/{rep}/WT-MD-prot.xtc'
     pdb = f'{TRAJ}/WT/{rep}/WT-MD-prot.pdb'
@@ -56,7 +58,7 @@ if n_frames < 2:
     dlog("ERROR: Not enough frames loaded.")
     cmd.quit()
 
-# ── Align all frames on CTL Ca (resi 100-292, no chain filter) ───────────────
+# ── Align all frames on CTL Cα (resi 100-292) ─────────────────────────────────
 dlog("Aligning all frames on CTL Ca (resi 100-292)...")
 n = cmd.count_states('WT_traj')
 for state in range(2, n + 1):
@@ -66,7 +68,7 @@ for state in range(2, n + 1):
             target_state=1)
 dlog("Alignment done.")
 
-# ── Run Princomp ──────────────────────────────────────────────────────────────
+# ── PCA on Cα atoms ───────────────────────────────────────────────────────────
 dlog("Running PCA on Ca atoms...")
 P = Princomp('WT_traj and name CA', ncomponents=5)
 
@@ -79,12 +81,12 @@ dlog(f"PC1+PC2 combined:       {(P.variances[0]+P.variances[1])/total_var*100:.1
 pc1 = P[1]
 dlog(f"PC1 score range (raw): {pc1.scores.min():.4f} to {pc1.scores.max():.4f}")
 
-# Scale scores to ±40 A
-scores_norm = pc1.scores / np.abs(pc1.scores).max() * 5.0
+# Normalise scores to ±5 Å for violin amplitude
+scores_norm  = pc1.scores / np.abs(pc1.scores).max() * 5.0
 pc1_scores_orig = pc1.scores
-pc1.scores = scores_norm
+pc1.scores   = scores_norm
 
-# Draw mean structure as grey tube
+# Draw mean structure as a translucent grey tube
 P.drawmean('pc_mean')
 cmd.show('cartoon', 'pc_mean')
 cmd.cartoon('tube', 'pc_mean')
@@ -93,16 +95,16 @@ cmd.set('cartoon_color', 'grey70', 'pc_mean')
 cmd.set('cartoon_transparency', 0.4, 'pc_mean')
 dlog("Mean structure drawn.")
 
-# Draw violin
+# Draw the PC1 violin coloured by KDE of normalised scores
 violin = pc1.violin(radius=0.2, bw=0.8)
 violin.recolor(BWR.kde, scores_norm, scores_norm)
 violin.draw('pc1_violin')
 dlog("Violin drawn.")
 
-# Restore scores
+# Restore original scores
 pc1.scores = pc1_scores_orig
 
-# ── Hide trajectory — only mean + violin visible ──────────────────────────────
+# Hide trajectory — only mean structure and violin are visible
 cmd.hide('everything', 'WT_traj')
 dlog("WT_traj hidden.")
 

@@ -89,13 +89,10 @@ requirements_explanation.txt
 
 # ==================================================
 # Figures policy
-# Keep curated folders, ignore temp archive junk
+# Keep curated thesis figures, ignore temp archive junk
 # ==================================================
-
-# ignore messy temp archive
 figures/ROS1_archive_old_dataset/
 
-# KEEP these folders and contents tracked
 !figures/
 !figures/ROS1/
 !figures/ROS1/**
@@ -111,6 +108,3 @@ figures/ROS1_archive_old_dataset/
 !*.yml
 !*.yaml
 !*.json
-
-results/
-figures/

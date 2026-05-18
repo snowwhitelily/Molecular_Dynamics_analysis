@@ -1,6 +1,12 @@
 """
-Script A: WT vs Q2022P structural overlay — FIXED for GRO numbering
-Chain X, residues 1-292 (GRO offset 1933 from ROS1 numbering)
+Script A: WT vs Q2022P structural overlay.
+
+Loads the dominant cluster representatives for WT and Q2022P, aligns on the
+CTL backbone (GRO residues 100-292, chain X), applies region-specific
+colouring, and renders front and side-view PNGs plus a PyMOL session file.
+
+GRO offset: residue numbering is shifted by 1933 from ROS1 canonical numbering
+(e.g. GRO resi 89 = ROS1 Q2022).
 
 Usage:
     cd /homes/lkgyammerah/Molecular_Dynamics_analysis/analysis
@@ -18,14 +24,13 @@ os.makedirs(OUTDIR, exist_ok=True)
 WT_PDB  = f'{RECEPT}/WT/WT_actout_ctlfit_dominant_cluster0_rep.pdb'
 Q22_PDB = f'{RECEPT}/Q2022P/Q2022P_actout_ctlfit_dominant_cluster0_rep.pdb'
 
-# ── Load ──────────────────────────────────────────────────────────────────────
+# ── Load structures ────────────────────────────────────────────────────────────
 cmd.load(WT_PDB,  'WT')
 cmd.load(Q22_PDB, 'Q2022P')
 print(f"Loaded WT and Q2022P")
 print(f"WT states: {cmd.count_states('WT')}, chains: {cmd.get_chains('WT')}")
 
-# ── Align on CTL backbone (GRO resi 100-292, chain X) ─────────────────────────
-# CTL = ROS1 2033-2225 = GRO 100-292
+# ── Align on CTL backbone (GRO resi 100-292 = ROS1 2033-2225, chain X) ────────
 rms = cmd.align('Q2022P and chain X and backbone and resi 100-292',
                 'WT and chain X and backbone and resi 100-292')
 print(f"CTL alignment RMSD: {rms[0]:.3f} A over {rms[1]} atoms")
@@ -34,38 +39,38 @@ print(f"CTL alignment RMSD: {rms[0]:.3f} A over {rms[1]} atoms")
 cmd.hide('everything')
 cmd.show('cartoon')
 
-# Thesis colours: WT=blue, Q2022P=red
+# WT: blue, Q2022P: red
 cmd.color('0x4A90C8', 'WT')
 cmd.color('0xD85050', 'Q2022P')
 cmd.set('cartoon_transparency', 0.2, 'WT')
 cmd.set('cartoon_transparency', 0.2, 'Q2022P')
 
-# αC-helix: GRO 42-67 — teal
+# Region colouring applied identically to both structures
+# αC-helix (GRO 42-67) — teal
 cmd.color('0x2B7A6E', 'WT and resi 42-67')
 cmd.color('0x2B7A6E', 'Q2022P and resi 42-67')
 
-# Hinge: GRO 85-95 — amber
+# Hinge (GRO 85-95) — amber
 cmd.color('0xC47A00', 'WT and resi 85-95')
 cmd.color('0xC47A00', 'Q2022P and resi 85-95')
 
-# P-loop: GRO 2-24 — purple
+# P-loop (GRO 2-24) — purple
 cmd.color('0x534AB7', 'WT and resi 2-24')
 cmd.color('0x534AB7', 'Q2022P and resi 2-24')
 
-# Solvent front: GRO 99-103 — red
+# Solvent front (GRO 99-103) — red
 cmd.color('0xC0392B', 'WT and resi 99-103')
 cmd.color('0xC0392B', 'Q2022P and resi 99-103')
 
-# DFG: GRO 169-171 — red
+# DFG motif (GRO 169-171) — red
 cmd.color('0xC0392B', 'WT and resi 169-171')
 cmd.color('0xC0392B', 'Q2022P and resi 169-171')
 
-# Q2022P mutation site sphere: GRO 89
+# Mutation site at GRO 89 (ROS1 Q2022): sphere on Q2022P, reference sphere on WT
 cmd.show('spheres', 'Q2022P and resi 89 and name CA')
 cmd.color('0xB82020', 'Q2022P and resi 89 and name CA')
 cmd.set('sphere_scale', 0.7, 'Q2022P and resi 89')
 
-# Also show WT equivalent for comparison
 cmd.show('spheres', 'WT and resi 89 and name CA')
 cmd.color('0x4A90C8', 'WT and resi 89 and name CA')
 cmd.set('sphere_scale', 0.5, 'WT and resi 89')
