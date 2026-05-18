@@ -1,16 +1,10 @@
-# %%
 # ROS1 Analysis Pipeline
-# Script 3B: Distance PCA (NTL–CTL CA–CA pairwise distances)
+# Script 03b: NTL-CTL Distance PCA
 #
-# FIXES (May 2026):
-#   1. ensure_meta removed — caused TypeError (SimpleNamespace has no len())
-#   2. import MDAnalysis removed — no longer needed
-#   3. selection.txt load removed — only used by ensure_meta
-#   4. F1994L exclusion added — consistent with all other pipeline scripts
-#   5. DIST_STRIDE=10 added — subsample every 10th frame before computing
-#      distance matrix. Reduces memory from ~15GB to ~1.5GB.
-#      The dominant distance PCA modes are not affected by subsampling.
-#      x_owner values are traj indices in post-exclusion 114-space.
+# Computes PCA on the matrix of pairwise Calpha-Calpha distances between
+# all NTL and CTL residues. This is superposition-independent and provides
+# orthogonal validation of the actout_ctlfit inter-lobe geometry results.
+# Trajectories are subsampled at stride 10 to reduce memory usage (~10x).
 
 import os
 from pathlib import Path
@@ -31,16 +25,15 @@ tim = Timer()
 
 BASE    = Path.home() / "Molecular_Dynamics_analysis"
 RESULTS = BASE / "results" / "ROS1"
-FIG_DIR = (BASE / "figures" / "ROS1" / "ros1_prepared_final"
-           / "step3_distance_pca")
+FIG_DIR = BASE / "figures" / "ROS1" / "ros1_prepared_final" / "step3_distance_pca"
 FIG_DIR.mkdir(parents=True, exist_ok=True)
-
-print("Running Script 3B: Distance PCA")
-print("Figure output folder:", FIG_DIR)
 
 N_PCS       = 5
 DIST_STRIDE = 10
+
+print("Running Script 3B: Distance PCA")
 print(f"DIST_STRIDE = {DIST_STRIDE}")
+print("Figure output folder:", FIG_DIR)
 
 
 def save_current_figure(filename):
@@ -50,12 +43,16 @@ def save_current_figure(filename):
     print("Saved figure:", out)
 
 
-def traj_mutant(p): return Path(p).parent.name
-def traj_replica(p): return Path(p).name
+def traj_mutant(p):
+    return Path(p).parent.name
+
+
+def traj_replica(p):
+    return Path(p).name
 
 
 # ============================================================
-# Load preprocessed data
+# Load preprocessed data from Script 01
 # ============================================================
 F_all          = pd.read_csv(RESULTS / "F_paths.csv")["folder"].tolist()
 traj_aligned   = np.load(RESULTS / "traj_aligned.npy", allow_pickle=True).tolist()
@@ -64,28 +61,27 @@ masks_npz      = np.load(RESULTS / "masks.npz", allow_pickle=True)
 masks          = {k: masks_npz[k] for k in masks_npz.files}
 
 meta = SimpleNamespace(
-    resids=np.load(RESULTS / "meta_resids.npy", allow_pickle=True),
-    names=np.load(RESULTS / "meta_names.npy", allow_pickle=True),
-    resnames=np.load(RESULTS / "meta_resnames.npy", allow_pickle=True),
+    resids   = np.load(RESULTS / "meta_resids.npy", allow_pickle=True),
+    names    = np.load(RESULTS / "meta_names.npy", allow_pickle=True),
+    resnames = np.load(RESULTS / "meta_resnames.npy", allow_pickle=True),
 )
 
 # ============================================================
-# F1994L exclusion
+# Exclude F1994L: AlphaFold2 predicted this variant in a distinct
+# inactive conformation not comparable to the rest of the panel.
 # ============================================================
 EXCLUDE_MUTANTS = {"F1994L"}
-keep = [i for i, f in enumerate(F_all)
-        if Path(f).parent.name not in EXCLUDE_MUTANTS]
+keep           = [i for i, f in enumerate(F_all) if Path(f).parent.name not in EXCLUDE_MUTANTS]
 F              = [F_all[i] for i in keep]
 traj_aligned   = [traj_aligned[i] for i in keep]
 frame_idx_list = [frame_idx_list[i] for i in keep]
-print(f"Excluded: {EXCLUDE_MUTANTS}")
-print(f"Remaining trajectories: {len(F)}")
+print(f"Trajectories after exclusion: {len(F)}")
 
 mut_names = [traj_mutant(p) for p in F]
 rep_names = [traj_replica(p) for p in F]
 
 # ============================================================
-# Define NTL and CTL CA atom index sets
+# NTL and CTL Calpha atom index sets
 # ============================================================
 CA   = masks["CA"]
 BODY = masks["BODY"]
@@ -103,13 +99,16 @@ print(f"NTL CA atoms: {len(ntl_idx)}")
 print(f"Distance vector length per frame: {len(ctl_idx) * len(ntl_idx)}")
 
 # ============================================================
-# Build distance matrix with stride subsampling
+# Build pairwise NTL-CTL distance matrix
+# Subsampled at DIST_STRIDE to reduce memory from ~15 GB to ~1.5 GB.
 # ============================================================
-D_list = []; traj_id_list = []; frame_orig_list = []
-mutant_list = []; replica_list = []
+D_list        = []
+traj_id_list  = []
+frame_orig_list = []
+mutant_list   = []
+replica_list  = []
 
 print(f"\nBuilding distance matrix (stride={DIST_STRIDE})...")
-
 for ti, xyz in enumerate(traj_aligned):
     xyz_sub       = xyz[::DIST_STRIDE]
     frame_idx_sub = np.asarray(frame_idx_list[ti])[::DIST_STRIDE].astype(int)
@@ -139,7 +138,7 @@ print(f"\nDistance matrix shape: {D.shape}")
 print(f"Memory: {D.nbytes / 1e9:.2f} GB")
 
 # ============================================================
-# PCA
+# PCA on the distance matrix
 # ============================================================
 print("\nRunning PCA...")
 m            = D.mean(axis=0, keepdims=True)
@@ -160,7 +159,6 @@ save_current_figure("step3b_distance_pca_scree.png")
 scores = Dc @ evecs[:, :N_PCS]
 print(f"Scores shape: {scores.shape}")
 
-# Density scaling (supervisor notebook Cell 56)
 Z       = Dc + m
 d_scale = np.exp(-5 * Z).sum(axis=1)
 d_scale -= d_scale.min() - 1e-6
@@ -176,13 +174,14 @@ np.save(RESULTS / "dist_evecs.npy",         evecs[:, :N_PCS])
 np.save(RESULTS / "dist_evals.npy",         evals[:N_PCS])
 np.save(RESULTS / "dist_mean.npy",          m)
 
-print("\nSaved all numpy outputs.")
-
 pc_cols   = {f"PC{i+1}": scores[:, i] for i in range(N_PCS)}
 scores_df = pd.DataFrame({
-    "traj_index": traj_id, "mutant": mutant_arr,
-    "replica": replica_arr, "frame_index_original": frame_orig,
-    **pc_cols, "size_scale": d_scale,
+    "traj_index"          : traj_id,
+    "mutant"              : mutant_arr,
+    "replica"             : replica_arr,
+    "frame_index_original": frame_orig,
+    **pc_cols,
+    "size_scale"          : d_scale,
 })
 scores_df.to_csv(RESULTS / "step3b_distance_pca_scores.csv", index=False)
 print("Saved: step3b_distance_pca_scores.csv")
@@ -190,14 +189,14 @@ print("Saved: step3b_distance_pca_scores.csv")
 # ============================================================
 # Plots
 # ============================================================
-
 plt.figure(figsize=(7, 7))
 plt.scatter(scores[:, 0], scores[:, 1], c=traj_id,
             s=100 * d_scale, alpha=0.5, linewidths=0, cmap="tab20")
 plt.colorbar(label="Trajectory index")
 plt.gca().set_aspect("equal", adjustable="box")
-plt.xlabel("PC1"); plt.ylabel("PC2")
-plt.title("Distance PCA: NTL-CTL CA-CA distances\nAll systems")
+plt.xlabel("PC1")
+plt.ylabel("PC2")
+plt.title("Distance PCA: NTL-CTL CA-CA distances — all systems")
 save_current_figure("step3b_distance_pca_pc1_pc2_all.png")
 
 unique_muts = sorted(set(mutant_arr))
@@ -208,12 +207,12 @@ for i, mut in enumerate(unique_muts):
     mask_m = mutant_arr == mut
     pc1_m  = scores[mask_m, 0]
     pc2_m  = scores[mask_m, 1]
-    plt.scatter(pc1_m, pc2_m, s=10, alpha=0.15,
-                color=cmap_mut(i), linewidths=0)
+    plt.scatter(pc1_m, pc2_m, s=10, alpha=0.15, color=cmap_mut(i), linewidths=0)
     plt.scatter(pc1_m.mean(), pc2_m.mean(), s=120,
                 color=cmap_mut(i), edgecolors="black",
                 linewidths=0.8, zorder=5, label=mut)
-plt.xlabel("PC1"); plt.ylabel("PC2")
+plt.xlabel("PC1")
+plt.ylabel("PC2")
 plt.title("Distance PCA: per-mutant positions")
 plt.legend(fontsize=6, ncol=4, loc="upper right", framealpha=0.8)
 save_current_figure("step3b_distance_pca_per_mutant.png")
@@ -222,11 +221,12 @@ plt.figure(figsize=(7, 7))
 plt.scatter(scores[:, 0], scores[:, 2], c=traj_id,
             s=100 * d_scale, alpha=0.5, linewidths=0, cmap="tab20")
 plt.colorbar(label="Trajectory index")
-plt.xlabel("PC1"); plt.ylabel("PC3")
+plt.xlabel("PC1")
+plt.ylabel("PC3")
 plt.title("Distance PCA: PC1 vs PC3")
 save_current_figure("step3b_distance_pca_pc1_pc3.png")
 
-# Top loading pairs for PC1
+# Top distance pairs contributing to PC1
 loadings_pc1 = evecs[:, 0]
 top_idx      = np.argsort(np.abs(loadings_pc1))[::-1][:20]
 n_ctl        = len(ctl_idx)
@@ -243,4 +243,3 @@ for rank, (ci, ni, idx) in enumerate(zip(top_ctl, top_ntl, top_idx), start=1):
           f"{float(loadings_pc1[idx]):>10.4f}")
 
 print("\nScript 3B completed.")
-print(f"Stride used: {DIST_STRIDE} (memory reduced ~10x)")
