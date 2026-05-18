@@ -1,7 +1,7 @@
 # ROS1 Analysis — Project Report
 
 **Lily Konadu Gyammerah | MSc Data Science for Life Sciences | Hanze University of Applied Sciences**
-**Supervisor: Tsjerk Wassenaar | Co-supervisors: Christa Dijkhuizen, Marjo van der Looff, Finn Milder**
+**Supervisor: Tsjerk Wassenaar**
 
 ---
 
