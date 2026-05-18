@@ -71,6 +71,20 @@ The following scripts generate structural figures and require PyMOL 3.1.0 and th
 
 ---
 
+## Interactive Dashboard
+
+An interactive Streamlit dashboard (`analysis/dashboard.py`) is provided for exploring the conformational analysis results. It covers per-mutant free energy landscape exploration, Q2022P family comparison, docking results, and a panel-wide metrics heatmap across all 39 systems. The dashboard loads pipeline outputs directly from the results directory and falls back to representative demo data when run outside the cluster environment.
+
+Run with:
+
+```bash
+streamlit run analysis/dashboard.py
+```
+
+Streamlit is included in `requirements.txt`.
+
+---
+
 ## Notebook
 
 `ROS1_Analysis_Notebook_v9.ipynb` reproduces all main figures and results interactively. It can be run after the pipeline scripts have been executed and results are available in `results/`.

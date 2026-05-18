@@ -57,10 +57,23 @@ AutoDock Vina v1.2.5 | Box: 25 × 20 × 20 Å centred on the ATP binding pocket 
 
 ---
 
+## Interactive Dashboard
+
+An interactive Streamlit dashboard is included for exploring the conformational analysis results. It covers per-mutant free energy landscape exploration, Q2022P family comparison, docking results, and a panel-wide metrics heatmap across all 39 systems. Run with:
+
+```bash
+streamlit run analysis/dashboard.py
+```
+
+The dashboard loads pipeline outputs directly from the results directory and falls back to representative demo data when run outside the cluster environment, making it suitable for interactive exploration on any machine.
+
+---
+
 ## Repository Contents
 
 ```
 analysis/                          Pipeline scripts (preprocessing through ensemble docking)
+analysis/dashboard.py              Interactive Streamlit dashboard
 analysis/scripts/                  Shared utilities including Princomp and Colorinator classes
 docs/                              Pipeline flowchart and supporting documentation
 figures/                           All generated figures
@@ -71,4 +84,3 @@ METHODS.md                         Reproducibility guide — dependencies, pipel
 REPORT.md                          Internal project record — confirmed results and status
 requirements.txt                   Python package dependencies with pinned versions
 ```
-
