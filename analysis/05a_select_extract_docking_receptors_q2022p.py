@@ -21,7 +21,7 @@ BASE     = Path.home() / "Molecular_Dynamics_analysis"
 RESULTS  = BASE / "results" / "ROS1"
 OUT_BASE = BASE / "dock" / "ROS1" / "q2022p_subset_receptors"
 
-Q_FAMILY = ["WT", "Q2022P", "Q2022P_S1986F", "Q2022P_S1986Y"]
+Q_FAMILY = ["WT", "Q2022P", "Q2022P_S1986F", "Q2022P_S1986Y", "S1986F"]
 
 
 def parse_args():
