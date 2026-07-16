@@ -1,16 +1,20 @@
-# ROS1 Analysis Pipeline
-# Script 02b2: PCA — Active Site subspace
-#
-# Computes PCA on backbone atoms of five ATP binding site regions:
-#   P-loop       (real 1957-1962) — grips ATP phosphate groups
-#   alphaC-helix (real 1983-1993) — contains E1993 salt bridge partner
-#   Catalytic    (real 2019-2025) — catalytic aspartate loop
-#   Hinge        (real 2031-2038) — H-bonds with ATP adenine ring
-#   DFG motif    (real 2042-2044) — coordinates Mg2+ ion
-#
-# Trajectories are aligned on NTL backbone (real 1938-2030) before PCA
-# so that PC1/PC2 reflect genuine active site shape changes rather than
-# global rigid-body motion. Output prefix: 'activesite'.
+"""
+ROS1 Analysis Pipeline — Script 02b2: Active Site PCA
+
+Computes PCA on backbone atoms of six ATP binding site regions, verified
+by sequence search and DSSP secondary structure assignment on WT-MD-prot.pdb:
+
+    G-loop        (real 1951-1959, GRO 18-26)  — phosphate-binding loop (GxGxxG)
+    beta3 Lys     (real 1980,      GRO 47)      — catalytic lysine (K1980)
+    alphaC-helix  (real 1988-2003, GRO 55-70)  — contains E1997 salt bridge partner
+    Hinge         (real 2026-2033, GRO 93-100) — H-bonds with ATP adenine ring
+    Catalytic     (real 2077-2084, GRO 144-151)— HRD catalytic loop
+    DFG motif     (real 2102-2104, GRO 169-171)— ASP-PHE-GLY, coordinates Mg2+ ion
+
+Trajectories are aligned on NTL backbone (real 1938-2030) before PCA
+so that PC1/PC2 reflect genuine active site shape changes rather than
+global rigid-body motion. Output prefix: 'activesite'.
+"""
 
 import numpy as np
 import pandas as pd
@@ -39,17 +43,14 @@ FIG_DIR.mkdir(parents=True, exist_ok=True)
 print("PCA_STRIDE =", PCA_STRIDE)
 print("Figure output:", FIG_DIR)
 
-# ============================================================
-# Load preprocessed data from Script 01
-# ============================================================
+# ── Load preprocessed data from Script 01 ────────────────────────────────────
 F              = pd.read_csv(RESULTS / "F_paths.csv")["folder"].tolist()
 traj_aligned   = np.load(RESULTS / "traj_aligned.npy", allow_pickle=True).tolist()
 frame_idx_list = np.load(RESULTS / "frame_idx_list.npy", allow_pickle=True).tolist()
 
-# ============================================================
-# Exclude F1994L: AlphaFold2 predicted this variant in a distinct
-# inactive conformation not comparable to the rest of the panel.
-# ============================================================
+# ── Exclude F1994L ────────────────────────────────────────────────────────────
+# AlphaFold2 predicted this variant in a distinct inactive conformation
+# not comparable to the rest of the panel.
 EXCLUDE_MUTANTS = {"F1994L"}
 keep           = [i for i, f in enumerate(F) if Path(f).parent.name not in EXCLUDE_MUTANTS]
 F              = [F[i] for i in keep]
@@ -57,9 +58,7 @@ traj_aligned   = [traj_aligned[i] for i in keep]
 frame_idx_list = [frame_idx_list[i] for i in keep]
 print(f"Trajectories after exclusion: {len(F)}")
 
-# ============================================================
-# Load masks and metadata
-# ============================================================
+# ── Load masks and metadata ───────────────────────────────────────────────────
 masks_npz = np.load(RESULTS / "masks.npz", allow_pickle=True)
 masks     = {k: masks_npz[k] for k in masks_npz.files}
 
@@ -81,19 +80,19 @@ with open(RESULTS / "nrep.txt") as f:
 
 traj_colors = make_traj_colors(F, colors, nrep)
 
-# ============================================================
-# Build active site atom selection mask
-# Real residue number = internal index + 1933
-# Select backbone atoms within each of the five functional regions.
-# ============================================================
+# ── Build active site atom selection mask ─────────────────────────────────────
+# Real residue number = internal GRO index + 1933.
+# All ranges verified by sequence search on WT-MD-prot.pdb and DSSP
+# secondary structure assignment.
 resids_abs = np.asarray(meta.resids).astype(int) + 1933
 
 ACTIVE_SITE_REGIONS = {
-    "P_loop"      : (1957, 1962),
-    "alphaC_helix": (1983, 1993),
-    "catalytic"   : (2019, 2025),
-    "hinge"       : (2031, 2038),
-    "DFG"         : (2042, 2044),
+    "G_loop"      : (1951, 1959),   # GxGxxG phosphate-binding loop
+    "beta3_K1980" : (1980, 1980),   # catalytic lysine
+    "alphaC_helix": (1988, 2003),   # contains E1997; DSSP verified GRO 55-70
+    "hinge"       : (2026, 2033),   # L2026 gatekeeper to G2032 solvent front
+    "catalytic"   : (2077, 2084),   # HRD catalytic loop
+    "DFG"         : (2102, 2104),   # ASP-PHE-GLY; sequence verified GRO 169-171
 }
 
 mask_activesite = np.zeros(len(resids_abs), dtype=bool)
@@ -110,10 +109,7 @@ if n_activesite_atoms == 0:
         "numbers match meta_resids.npy (real residue = internal + 1933)."
     )
 
-# ============================================================
-# Align on NTL backbone to remove global rigid-body motion
-# before running active site PCA
-# ============================================================
+# ── Align on NTL backbone before active site PCA ─────────────────────────────
 fit_mask = BB & NTL
 print(f"NTL fit atoms: {int(fit_mask.sum())}")
 
@@ -122,7 +118,7 @@ ref_fit = ref_centered[fit_mask] - ref_centered[fit_mask].mean(axis=0, keepdims=
 with tim("Active site: aligning trajectories on NTL"):
     traj_activesite = [align_traj_to_ref_by_fit(xyz, fit_mask, ref_fit) for xyz in traj_aligned]
 
-# Coordinate density plot (sanity check)
+# Coordinate density sanity check
 plt.figure(figsize=(7, 6))
 A = []
 for xyz in traj_activesite:
@@ -137,9 +133,7 @@ plt.xlabel("Y")
 plt.ylabel("Z")
 save_current_figure(FIG_DIR, "activesite_density_yz.png")
 
-# ============================================================
-# Run active site PCA
-# ============================================================
+# ── Run active site PCA ───────────────────────────────────────────────────────
 PCA_ACTIVESITE = run_pca_block(
     traj_list      = traj_activesite,
     sel_mask       = mask_activesite,
