@@ -155,6 +155,17 @@ if os.environ.get('POCKET_LABELS'):
     cmd.set('label_size', 20); cmd.set('label_color', 'black'); cmd.set('label_outline_color', 'white')
     cmd.label(f'{mean_v} and name CA and resid ' + '+'.join(str(r) for r in KEY_GRO), '"%s" % resi')
 
+# always label the two mutation sites so they can be told apart at a glance
+# GRO 53 = real 1986, GRO 89 = real 2022
+OFFSET = 1933
+cmd.set('label_size', 16)
+cmd.set('label_color', 'black')
+cmd.set('label_outline_color', 'white')
+cmd.set('label_position', [0, 2.5, 0])
+for gro in MUT_GRO:
+    real = gro + OFFSET
+    cmd.label(f'{mean_v} and name CA and resid {gro}', repr(str(real)))
+
 cmd.load(wt_atoms_pdb, 'camref'); cmd.hide('everything', 'camref')
 frame_sel = f'drug or (camref and ({mut_resid}))'
 if VARIANT == 'WT' or not os.path.exists(view_file):

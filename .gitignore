@@ -107,4 +107,8 @@ figures/ROS1_archive_old_dataset/
 !*.txt
 !*.yml
 !*.yaml
-!*.json
+!*.json_reorg_backup/
+thesis_build/
+reorg_ros1.sh
+figures/ROS1/ros1_prepared_final/
+*.pse
