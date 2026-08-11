@@ -98,8 +98,8 @@ PALETTE = {
     'G2048A_NC': '#5C6BC0', 'H1999Q_NC': '#7E57C2', 'L2053V_NC': '#AB47BC',
 }
 DEFAULT_C = '#78909C'
-FEL_CMAP  = cm.viridis
-FEL_VMAX  = 2.5
+FEL_CMAP  = cm.viridis_r
+FEL_VMAX  = 6.2   # kJ/mol (was 2.5 kT); RT ~ 2.49 kJ/mol at 300 K
 
 # Confirmed values from thesis (used as fallback when files not present)
 NOISE_FRACTIONS = {
@@ -259,14 +259,27 @@ def load_data():
 
 # ── FEL helpers ───────────────────────────────────────────────────────────────
 def compute_fel(pc1, pc2, bins=100, vmax=FEL_VMAX):
-    """Compute 2D free energy landscape from frame coordinates."""
-    h, xe, ye = np.histogram2d(pc1, pc2, bins=bins)
-    h = h.astype(float)
-    h[h == 0] = np.nan
-    G = -np.log(h / np.nanmax(h))
+    """2D free energy landscape via Gaussian KDE (matches thesis script 03c)."""
+    from scipy.stats import gaussian_kde
+    pc1 = np.asarray(pc1); pc2 = np.asarray(pc2)
+    m = np.isfinite(pc1) & np.isfinite(pc2)
+    pc1, pc2 = pc1[m], pc2[m]
+    xc = np.linspace(pc1.min(), pc1.max(), bins)
+    yc = np.linspace(pc2.min(), pc2.max(), bins)
+    Xc, Yc = np.meshgrid(xc, yc)
+    # KDE needs enough spread; fall back to histogram if too few/degenerate
+    try:
+        if pc1.size < 5 or np.std(pc1) == 0 or np.std(pc2) == 0:
+            raise ValueError
+        k = gaussian_kde(np.vstack([pc1, pc2]))
+        dens = k(np.vstack([Xc.ravel(), Yc.ravel()])).reshape(Xc.shape)
+    except Exception:
+        h, xe, ye = np.histogram2d(pc1, pc2, bins=bins)
+        dens = h.T
+        xc = 0.5 * (xe[:-1] + xe[1:]); yc = 0.5 * (ye[:-1] + ye[1:])
+    dens = np.clip(dens / np.nanmax(dens), 1e-10, 1.0)
+    G = -0.0083144626 * 300.0 * np.log(dens)  # kJ/mol
     G[G > vmax] = vmax
-    xc = 0.5 * (xe[:-1] + xe[1:])
-    yc = 0.5 * (ye[:-1] + ye[1:])
     return G, xc, yc
 
 
@@ -417,7 +430,7 @@ ATP pocket open: {f"{atp_val:.0f}%" if atp_val is not None else "—"}
             fig.subplots_adjust(right=0.88)
             cbar_ax = fig.add_axes([0.91, 0.15, 0.02, 0.7])
             cbar = fig.colorbar(sm, cax=cbar_ax)
-            cbar.set_label('Relative free energy (kT)', fontsize=8)
+            cbar.set_label('Relative free energy (kJ/mol)', fontsize=8)
             st.pyplot(fig, use_container_width=True)
             plt.close(fig)
 
@@ -472,7 +485,7 @@ elif panel == "Q2022P Family":
     fig.subplots_adjust(right=0.88)
     cbar_ax = fig.add_axes([0.91, 0.15, 0.015, 0.7])
     cbar = fig.colorbar(sm, cax=cbar_ax)
-    cbar.set_label('Relative free energy (kT)', fontsize=8)
+    cbar.set_label('Relative free energy (kJ/mol)', fontsize=8)
     st.pyplot(fig, use_container_width=True)
     plt.close(fig)
 
