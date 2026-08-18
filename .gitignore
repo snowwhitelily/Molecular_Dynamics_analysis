@@ -107,7 +107,8 @@ figures/ROS1_archive_old_dataset/
 !*.txt
 !*.yml
 !*.yaml
-!*.json_reorg_backup/
+!*.json
+_reorg_backup/
 thesis_build/
 reorg_ros1.sh
 figures/ROS1/ros1_prepared_final/
@@ -116,3 +117,5 @@ figures/ROS1/ros1_prepared_final/
 reorg_scripts.sh
 s1986y_pocket.png
 *_pocket.png
+*.bak
+figures/ROS1/notebook_figures/

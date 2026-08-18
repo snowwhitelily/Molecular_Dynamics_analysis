@@ -79,7 +79,7 @@ docs/                              Pipeline flowchart and supporting documentati
 figures/                           All generated figures
 results/                           Computed outputs (PCA scores, cluster labels, metrics, docking results)
 dock/                              Docking inputs, receptor and ligand PDBQTs, Vina configurations and outputs
-ROS1_Analysis_Notebook_v9.ipynb    Final analysis notebook
+ROS1_MDAnalysis_Notebook.ipynb    Final analysis notebook
 METHODS.md                         Reproducibility guide — dependencies, pipeline, script order
 REPORT.md                          Internal project record — confirmed results and status
 requirements.txt                   Python package dependencies with pinned versions
@@ -105,3 +105,7 @@ Beyond the core active-state analysis of five baseline FDA-approved inhibitors, 
 * **Active-Site Pocket Volumetry & Image Composition**
   * Automated workflows (`make_volume.sh`, `make_pocket_figure.sh`, `make_overview.sh`) to measure active-site volume fluctuations across trajectory frames (`analysis/pocket_volume.py`), clean and prepare coordinate surfaces (`analysis/pocket_prep.py`, `analysis/pocket_lib.py`), and generate raw ray-traced image renders (`analysis/pocket_render.py`, `analysis/overview_render.py`).
   * Merges structural outputs and metric labels into polished multi-panel figures (`analysis/pocket_compose.py`, `analysis/overview_compose.py`, `analysis/pocket_panel.py`).
+
+## Limitations and Future Work
+
+The analysis scripts in this repository are largely procedural, with logic at module scope rather than encapsulated in functions. This reflects their origin as sequential analysis steps developed alongside the research. For reuse, maintainability, and unit testing, a natural next step is to refactor shared logic into importable functions and modules, reducing global-scope state and enabling automated testing. The Jupyter notebook similarly favours flat, exploratory cells; splitting it into focused, topic-specific notebooks would improve readability as the project grows.

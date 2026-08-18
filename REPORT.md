@@ -14,7 +14,7 @@
 | PyMOL Script A (WT vs Q2022P overlay) | Complete — Figure 4.3 |
 | PyMOL Script B (PC1 violin) | Written — Figure 4.1B |
 | PyMOL Script C (Q2022P family LD1) | Complete — Figures 4.5, 4.6 |
-| Notebook | Complete — ROS1_Analysis_Notebook_v9.ipynb |
+| Notebook | Complete — ROS1_MDAnalysis_Notebook.ipynb |
 | README | Complete |
 | METHODS.md | Complete |
 | requirements.txt | Complete — pinned versions |

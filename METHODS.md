@@ -87,7 +87,7 @@ Streamlit is included in `requirements.txt`.
 
 ## Notebook
 
-`ROS1_Analysis_Notebook_v9.ipynb` reproduces all main figures and results interactively. It can be run after the pipeline scripts have been executed and results are available in `results/`.
+`ROS1_MDAnalysis_Notebook.ipynb` reproduces all main figures and results interactively. It can be run after the pipeline scripts have been executed and results are available in `results/`.
 
 ## Advanced Pipeline & Visualization Reference
 
