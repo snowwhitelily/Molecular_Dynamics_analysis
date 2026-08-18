@@ -14,6 +14,9 @@ EDGE           = float(os.environ.get('POCKET_EDGE', 0.17))
 SIDE           = float(os.environ.get('POCKET_SIDE', 0.05))
 DRUG_TRANSP    = float(os.environ.get('POCKET_DRUG', 0.0))
 BUFFER         = float(os.environ.get('POCKET_BUFFER', 1.5))
+SPIKE_RADIUS   = float(os.environ.get('POCKET_SPIKE_RADIUS', 0.19))
+SPIKE_LIGHTEN  = float(os.environ.get('POCKET_SPIKE_LIGHTEN', 0.60))  # 0 = variant colour, 1 = white
+SPIKE_COLOR    = os.environ.get('POCKET_SPIKE_COLOR', '')             # e.g. '#FFC400' forces one colour; blank = lightened variant
 MUT_GRO        = [53, 89]
 KEY_GRO        = [47, 53, 89, 93, 169]
 
@@ -97,24 +100,40 @@ def style_mean(obj, colour_name, edge, side):
     cmd.color(colour_name, msel)
 
 def draw_mutation_spikes(pca_name, mean_obj, colour_rgb, tag):
-    """Whole-pocket PC1 motion, drawn only on the mutation residues."""
+    """Whole-pocket PC1 motion, drawn only on the mutation residues.
+
+    Prints a one-line diagnostic so a missing spike says WHY (an early skip)
+    instead of failing silently, and draws the spike in a darker shade of the
+    variant colour (POCKET_SPIKE_DARKEN) so it stands out on the same-coloured
+    mutation sphere instead of blending in."""
     comp = getattr(pca, pca_name)[0]
     loadings = np.asarray(comp.loadings)
     resis = np.array([int(a.resi) for a in cmd.get_model(mean_obj).atom])
     if len(resis) != len(loadings):
-        print('spike skip: atom/resi mismatch'); return
+        print(f'spike skip [{tag}]: atom/resi mismatch '
+              f'({len(resis)} atoms vs {len(loadings)} loadings)')
+        return
     mask = np.isin(resis, np.array(MUT_GRO))
     if not mask.any():
-        print('spike skip: no mutation atoms in pocket'); return
+        print(f'spike skip [{tag}]: no mutation atoms (MUT_GRO={MUT_GRO}) '
+              f'among pocket resis {sorted(set(int(r) for r in resis))}')
+        return
     scores = np.asarray(comp.scores)
     span = float(scores.max() - scores.min())
     mload = float(np.sqrt((loadings[mask] ** 2).sum(axis=1)).max())
     denom = span * mload
     scale = (TARGET_WHISKER * SCALE_MULT) / denom if denom > 0 else 1.0
+    print(f'spikes [{tag}]: {int(mask.sum())} mutation atoms, span={span:.3f}, '
+          f'max mutation loading={mload:.4f}, scale={scale:.3f} '
+          f'(target whisker {TARGET_WHISKER * SCALE_MULT:.2f} A)')
     sub = copy.copy(comp)                     # keep scores/mean/sele; mask loadings
     L = loadings.copy(); L[~mask] = 0.0; sub.loadings = L
-    sub.cgo(draw='boxplot', radius=0.19, scale=scale,
-            color=list(colour_rgb), threshold=1e-6, name=f'{tag}_spikes')
+    if SPIKE_COLOR:
+        spike_rgb = list(hex_rgb(SPIKE_COLOR))              # forced single colour
+    else:
+        spike_rgb = [c + (1.0 - c) * SPIKE_LIGHTEN for c in colour_rgb]  # blend toward white
+    sub.cgo(draw='boxplot', radius=SPIKE_RADIUS, scale=scale,
+            color=list(spike_rgb), threshold=1e-6, name=f'{tag}_spikes')
 
 cmd.reinitialize(); cmd.bg_color('white')
 cmd.set('ray_opaque_background', 1); cmd.set('orthoscopic', 1); cmd.set('ray_shadows', 0)

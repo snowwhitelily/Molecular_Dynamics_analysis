@@ -46,7 +46,7 @@ LABELS = {
     'Q2022P_S1986Y': 'Q2022P\nS1986Y',
 }
 
-# ── Load LD1 replica-mean data ─────────────────────────────────────────────────
+# Load LD1 replica-mean data 
 lda_file = f'{RESULTS}/step4c_pairwise_lda_WT_frame_summary.csv'
 print(f"Loading: {lda_file}")
 df = pd.read_csv(lda_file)
@@ -57,7 +57,7 @@ SYSTEMS      = ['WT', 'Q2022P', 'Q2022P_S1986F', 'Q2022P_S1986Y']
 COMPARISONS  = ['WT_vs_Q2022P', 'WT_vs_Q2022P_S1986F', 'WT_vs_Q2022P_S1986Y']
 COMP_LABELS  = ['WT vs Q2022P', 'WT vs Q2022P\nS1986F', 'WT vs Q2022P\nS1986Y']
 
-# ── Stripplot — one panel per pairwise comparison ──────────────────────────────
+# Stripplot — one panel per pairwise comparison 
 fig, axes = plt.subplots(1, 3, figsize=(11, 4), sharey=False)
 fig.suptitle('Q2022P family: replica LD1 projections\n'
              '(each point = one replica mean; WT and mutant on each pairwise LD1 axis)',
@@ -103,7 +103,7 @@ plt.savefig(out_path, dpi=150, bbox_inches='tight', facecolor='white')
 plt.close()
 print(f"Saved: {out_path}")
 
-# ── Back-project LD1 onto structure using PCA loadings and LDA weights ─────────
+# Back-project LD1 onto structure using PCA loadings and LDA weights 
 lda_weights_file = f'{RESULTS}/step4b_pairwise_lda_wt_vs_family_weights.csv'
 loadings_file    = f'{RESULTS}/actout_ctlfit_loadings.npy'
 
@@ -138,7 +138,7 @@ if os.path.exists(lda_weights_file) and os.path.exists(loadings_file):
 
     print(f"LD1 per-residue: {n_atoms} atoms, max={ld1_per_res.max():.3f}, min={ld1_per_res.min():.3f}")
 
-    # ── Colour structure in PyMOL ──────────────────────────────────────────────
+    #  Colour structure in PyMOL 
     print("Colouring structure in PyMOL...")
     from pymol import cmd, stored
 

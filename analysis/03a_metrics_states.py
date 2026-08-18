@@ -151,7 +151,7 @@ save_current_figure("step3a_act_state_distribution.png")
 # DFG-Phe = internal residue 110 = real residue 2043
 # DFG-in  ~ chi1 = -70 deg; DFG-out ~ chi1 = +60 or ±170 deg
 # ============================================================
-DFG_F          = 110   # internal residue index for DFG-Phe (real 2043)
+DFG_F = 170   # internal residue index for DFG-Phe (real 2043)
 manual_thr_deg = None
 
 frame_idx_local_list = [np.asarray(get_frame_idx(d)).astype(int) for d in F]
@@ -218,7 +218,7 @@ REGIONS = {
     "alphaC": (1983, 1993),
     "hinge" : (2031, 2038),
     "P_loop": (1957, 1962),
-    "DFG"   : (2042, 2044),
+    "DFG"   : (2102, 2104),
 }
 
 def region_mask(resids, start, end):
@@ -288,7 +288,7 @@ mask_ploop = region_mask(resids_abs, *REGIONS["P_loop"])
 mask_dfg   = region_mask(resids_abs, *REGIONS["DFG"])
 
 idx_gate = find_ca_idx(2026)
-idx_dfgF = find_ca_idx(2043)
+idx_dfgF = find_ca_idx(2103)
 print(f"Gatekeeper L2026 CA index: {idx_gate}")
 print(f"DFG-Phe F2043 CA index: {idx_dfgF}")
 

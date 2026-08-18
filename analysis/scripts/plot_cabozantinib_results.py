@@ -106,18 +106,28 @@ def make_heatmap():
     # Plot
     fig, ax = plt.subplots(figsize=(max(8, len(pivot.columns) * 1.4), 5))
 
-    vmin = pivot.min().min()
-    vmax = pivot.max().max()
-    cmap = plt.cm.RdYlGn_r  # red = strong binding, green = weak
+    # A positive affinity means the docking failed to find a valid pose, not a
+    # real (weak) binding energy. Treat those as N/A: keep them out of the
+    # colour scale (so one +18 doesn't blow out the whole range) and label N/A.
+    failed = pivot > 0
+    valid = pivot.where(~failed)              # positives -> NaN
 
-    im = ax.imshow(pivot.values, cmap=cmap, aspect="auto",
+    vmin = valid.min().min()
+    vmax = valid.max().max()
+    cmap = plt.cm.RdYlGn_r.copy()             # red = strong binding, green = weak
+    cmap.set_bad("#d9d9d9")                    # grey for N/A cells
+
+    im = ax.imshow(valid.values, cmap=cmap, aspect="auto",
                    vmin=vmin, vmax=vmax)
 
     # Annotate cells
     for i in range(len(pivot.index)):
         for j in range(len(pivot.columns)):
             val = pivot.iloc[i, j]
-            if np.isnan(val):
+            if failed.iloc[i, j]:
+                ax.text(j, i, "N/A", ha="center", va="center", fontsize=10,
+                        fontweight="bold", color="#555555")
+            elif np.isnan(val):
                 ax.text(j, i, "—", ha="center", va="center", fontsize=10,
                         color="grey")
             else:
@@ -210,10 +220,10 @@ def make_active_vs_inactive():
     ax.set_xticks(x)
     ax.set_xticklabels(all_variants, fontsize=10)
     ax.set_ylabel("Binding affinity (kcal/mol)", fontsize=11)
-    
+
     # Expand vertical limit slightly so labels at -10 kcal/mol don't hit the border
     ax.set_ylim(-13.0, 0)
-    
+
     ax.set_title("Cabozantinib: active vs inactive receptor conformation",
                  fontsize=12, pad=10)
     ax.legend(fontsize=10, loc="upper right")

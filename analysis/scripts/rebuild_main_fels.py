@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import numpy as np
 
-# ── Path to your KDE-smoothed per-mutant FELs ──
+# Path to KDE-smoothed per-mutant FELs
 FEL_DIR = (
     '/homes/lkgyammerah/Molecular_Dynamics_analysis/figures/ROS1/'
     'ros1_prepared_final/step3_free_energy_landscapes/actout_ctlfit/per_mutant'
@@ -34,7 +34,7 @@ OUT_DIR = '/homes/lkgyammerah/Molecular_Dynamics_analysis/figures/ROS1/ros1_prep
 
 def find_fel(variant):
     """Find the FEL PNG for a given variant name."""
-    # Try common naming patterns
+    # Trying common naming patterns
     patterns = [
         f'actout_ctlfit_{variant}_fel.png',
         f'actout_ctlfit_{variant.upper()}_fel.png',
@@ -99,7 +99,7 @@ def build_grid(systems, labels, out_path, cols, title=None,
         for spine in ax.spines.values():
             spine.set_visible(False)
 
-    # Add row labels on the left if provided
+    # Add row labels on the left (if provided)
     if row_labels:
         for r, rlabel in enumerate(row_labels):
             axes[r, 0].set_ylabel(rlabel, fontsize=10, fontweight='bold',
@@ -149,10 +149,10 @@ def main():
         'Q2022P\nResistance — hinge',
         'Q2022P_S1986F\nCompound — suppressor F',
         'Q2022P_S1986Y\nCompound — suppressor Y',
-        'D2113N\nMost closed pocket (27%)',
-        'E2020K\nMost open pocket (89%)',
+        'D2113N\nRelatively closed pocket (53%)',
+        'E2020K\nRelatively open pocket (77%)',
     ]
-
+    
     build_grid(
         fig42_systems, fig42_labels,
         os.path.join(OUT_DIR, 'FEL_key_systems.png'),

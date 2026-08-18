@@ -6,5 +6,5 @@ BASE="$HOME/Molecular_Dynamics_analysis"
 VENV="$HOME/.venvs/ros1_analysis_env/bin/activate"
 cd "$BASE"
 source "$VENV"
-python3 "$BASE/analysis/pocket_volume.py" "$SELECTION" "$DRUG"
+python3 "$BASE/analysis/scripts/pocket_volume.py" "$SELECTION" "$DRUG"
 deactivate || true

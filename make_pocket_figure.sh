@@ -16,7 +16,7 @@ CUTOFF="${4:-5.0}"
 export POCKET_SCALE="$SCALE"
 
 BASE="$HOME/Molecular_Dynamics_analysis"
-ANALYSIS="$BASE/analysis"
+ANALYSIS="$BASE/analysis/scripts"
 VENV="$HOME/.venvs/ros1_analysis_env/bin/activate"
 VARIANTS=(WT S1986F Q2022P Q2022P_S1986F)
 cd "$BASE"

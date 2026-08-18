@@ -95,13 +95,13 @@ Beyond the core active-state analysis of five baseline FDA-approved inhibitors, 
 
 * **Active-Site PCA & Conformation Violins** 
   * Characterizes active-site conformational spaces using Principal Component Analysis (`analysis/02b2_pca_activesite.py`, `analysis/scripts/pca.py`).
-  * Generates publication-ready PCA projection overlays comparing variants (`analysis/plot_pca_overlay_paper.py`) and automates the rendering of PC1 conformational distribution violins directly inside PyMOL (`analysis/pymol_B_pc1_violin.py`)[cite: 5].
+  * Generates publication-ready PCA projection overlays comparing variants (`analysis/plot_pca_overlay_paper.py`) and automates the rendering of PC1 conformational distribution violins directly inside PyMOL (`analysis/pymol_B_pc1_violin.py`).
 * **DFG Conformation Quality Control & Target Selection**
   * Custom geometric engines (`analysis/check_dfg_angle.py`, `analysis/check_dfg_calibrate.py`, `analysis/check_dfg_state.py`) programmatically calculate crucial dihedral angles to verify active (DFG-in) vs. inactive (DFG-out) state orientations prior to docking.
-  * Specialized script to select and extract representative receptor coordinate frames for the Q2022P mutant and associated family variants (`analysis/05a_select_extract_docking_receptors_q2022p.py`)[cite: 5].
+  * Specialized script to select and extract representative receptor coordinate frames for the Q2022P mutant and associated family variants (`analysis/05a_select_extract_docking_receptors_q2022p.py`).
 * **Cabozantinib Inactive-State (Type II) Docking Pipeline**
   * A fully automated pipeline (`analysis/run_inactive_pipeline.sh`) that orchestrates mutating inactive template structures (`analysis/06d_mutate_inactive_receptors.py`), preparing docking grids (`analysis/06e_prepare_inactive_mutants_dock.py`), running docking trials across states (`analysis/06a_prepare_cabozantinib_active.py`, `analysis/06b_prepare_cabozantinib_inactive.py`), and analyzing poses (`analysis/06c_rank_cabozantinib.py`, `analysis/06f_analyze_cabozantinib_poses.py`).
-  * Yields high-resolution comparative figures detailing active vs. inactive binding affinity trends (`analysis/plot_cabozantinib_results.py`)[cite: 1] and formats final docking summaries styled specifically for journal submission (`analysis/plot_docking_results_paper.py`).
+  * Yields high-resolution comparative figures detailing active vs. inactive binding affinity trends (`analysis/plot_cabozantinib_results.py`) and formats final docking summaries styled specifically for journal submission (`analysis/plot_docking_results_paper.py`).
 * **Active-Site Pocket Volumetry & Image Composition**
   * Automated workflows (`make_volume.sh`, `make_pocket_figure.sh`, `make_overview.sh`) to measure active-site volume fluctuations across trajectory frames (`analysis/pocket_volume.py`), clean and prepare coordinate surfaces (`analysis/pocket_prep.py`, `analysis/pocket_lib.py`), and generate raw ray-traced image renders (`analysis/pocket_render.py`, `analysis/overview_render.py`).
   * Merges structural outputs and metric labels into polished multi-panel figures (`analysis/pocket_compose.py`, `analysis/overview_compose.py`, `analysis/pocket_panel.py`).

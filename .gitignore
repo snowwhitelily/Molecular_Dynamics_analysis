@@ -112,3 +112,7 @@ thesis_build/
 reorg_ros1.sh
 figures/ROS1/ros1_prepared_final/
 *.pse
+*.bak2
+reorg_scripts.sh
+s1986y_pocket.png
+*_pocket.png

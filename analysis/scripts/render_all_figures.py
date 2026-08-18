@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ROS1 Thesis Figure Renderer — v3 (clean rewrite)
+ROS1 Thesis Figure Renderer 
 
 Fixes:
   - Green loops: hide tag residues AFTER show cartoon
@@ -82,11 +82,11 @@ show spheres, resi 169-171 and name CA
 set sphere_scale, 0.6, resi 169-171
 set cartoon_tube_radius, 0.4, resi 169-171
 
-# ── NOW hide tag residues (AFTER show cartoon) ──
+# hide tag residues (AFTER show cartoon) ──
 hide everything, resi 1-11
 hide everything, resi 288-999
 
-# ── Hide all non-bonded/solvent ──
+# Hide all non-bonded/solvent
 hide nonbonded
 hide lines
 """

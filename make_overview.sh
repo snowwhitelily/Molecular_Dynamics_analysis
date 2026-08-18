@@ -2,7 +2,7 @@
 set -euo pipefail
 DRUG="${1:?need DRUG: lorlatinib or zidesamtinib}"
 SELECTION="${2:-distance}"
-BASE="$HOME/Molecular_Dynamics_analysis"; ANALYSIS="$BASE/analysis"
+BASE="$HOME/Molecular_Dynamics_analysis"; ANALYSIS="$BASE/analysis/scripts"
 FIGS="$BASE/figures/ROS1/ros1_prepared_final/pocket_box"
 VENV="$HOME/.venvs/ros1_analysis_env/bin/activate"; cd "$BASE"
 if [[ ! -f "$FIGS/prep_${SELECTION}_${DRUG}_drug.pdb" ]]; then
