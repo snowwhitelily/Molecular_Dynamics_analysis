@@ -1,5 +1,5 @@
 """
-pocket_prep.py -- MDAnalysis prep for the Task 10 pocket figure (runs in venv).
+pocket_prep.py -- MDAnalysis prep for the ATP pocket figure (runs in venv).
 
 Writes plain files the PyMOL render step reads without MDAnalysis:
     prep_<SEL>_<DRUG>_drug.pdb        frame-corrected drug pose (NTL frame)

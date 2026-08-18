@@ -2,12 +2,12 @@
 """
 plot_cabozantinib_bars_split.py
 
-Coworker request: split the combined active-vs-inactive cabozantinib bar chart
+Split the combined active-vs-inactive cabozantinib bar chart
 into two SEPARATE charts -- one for the active (DFG-in) receptors and one for
 the inactive (DFG-out) receptors -- each showing all five variants.
 
 Why splitting is actually the cleaner thing to do: the active arm used the
-Task 5 ATP-site box; the inactive arm used a larger box that also covers the
+original ATP-site box; the inactive arm used a larger box that also covers the
 type II specificity pocket. In the combined chart those two boxes sat side by
 side in every group. Splitting them puts each chart on one consistent box.
 The two share a y-axis so they still line up if placed next to each other.

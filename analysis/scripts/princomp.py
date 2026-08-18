@@ -1,3 +1,4 @@
+# princomp.py -- PCA/plotting utilities by T. A. Wassenaar
 import numpy as np
 from pymol import cmd
 from colorinator import *

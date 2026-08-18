@@ -5,7 +5,7 @@ structure, in the actout_ctlfit inter-lobe subspace.
 Written fresh against Tsjerk's princomp.py (which is where violin() actually
 lives; pca.py has no violin). princomp.py needs only numpy, PyMOL and
 colorinator, so this runs directly in system PyMOL. No MDAnalysis, and no venv
-split of the kind Task 10 needed.
+split of the kind the pocket figure needed.
 
 Spec (thesis section 4.1, Figure 4.1 caption, and Appendix Table C1):
   space     actout_ctlfit (global inter-lobe geometry)

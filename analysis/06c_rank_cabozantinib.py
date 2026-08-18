@@ -3,7 +3,7 @@
 06c_rank_cabozantinib.py
 
 Parse the cabozantinib Vina outputs (active and inactive) into CSVs with the
-same columns as the Task 5 step5c files, so the existing plotting code can read
+same columns as the earlier step5c files, so the existing plotting code can read
 them without modification.
 
 Vina writes one MODEL per pose, each preceded by a line of the form

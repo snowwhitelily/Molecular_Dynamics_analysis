@@ -1,3 +1,4 @@
+# colorinator.py -- colour utilities by T. A. Wassenaar (princomp/PyMOL toolkit)
 import numpy as np
 #from matplotlib.colors import rgb_to_hsv, hsv_to_rgb
 #from skimage.color import rgb2lab, lab2rgb

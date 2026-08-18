@@ -54,7 +54,7 @@ VARIANT_ORDER = ["WT", "Q2022P", "Q2022P_S1986F", "Q2022P_S1986Y", "S1986F"]
 def make_heatmap():
     """Add cabozantinib as a sixth column to the existing docking heatmap."""
 
-    # Load the existing five-ligand results (FIXED: Using the correct file from your server)
+    # Load the existing five-ligand docking results
     existing_csv = RESULTS / "step5c_q2022p_vina_best_by_mutant_ligand.csv"
     if not existing_csv.exists():
         print(f"WARNING: {existing_csv} not found — cannot build extended heatmap.")
@@ -234,7 +234,7 @@ def make_active_vs_inactive():
     # Move the note box up top out of the way of the bars
     ax.annotate(
         "Note: active and inactive use different docking boxes.\n"
-        "Active = Task 5 ATP-site box. Inactive = type II pocket box.\n"
+        "Active = ATP-site box. Inactive = type II pocket box.\n"
         "Compare within conformation, not across.",
         xy=(0.02, 0.95), xycoords="axes fraction",
         fontsize=7, color="#333333", va="top",

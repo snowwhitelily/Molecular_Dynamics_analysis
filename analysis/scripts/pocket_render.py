@@ -1,4 +1,5 @@
-"""pocket_render.py -- Task 10 pocket figure (system PyMOL). Polished:
+"""pocket_render.py -- ATP pocket figure (system PyMOL). Polished:
+Uses T. A. Wassenaar's pca.py (princomp/drawmean) for the pocket PCA.
 lighter+thinner WT reference, thicker coloured mutant, larger ligand/spheres.
 PC1 spikes now come from the WHOLE-POCKET motion but are shown only on the
 mutation residues (zero out every other atom's loading, then the boxplot's own

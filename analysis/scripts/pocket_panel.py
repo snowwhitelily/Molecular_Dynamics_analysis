@@ -1,5 +1,5 @@
 """
-pocket_panel.py -- render ONE variant's ATP pocket panel for Task 10.
+pocket_panel.py -- render one variant's ATP pocket panel.
 
 Uses Tsjerk's pca.py (princomp / drawmean / drawcomp) to compute the pocket PCA
 fresh from the trajectories and draw the PC1 eigenvector as a boxplot, matching

@@ -1,5 +1,5 @@
 """
-pocket_lib.py -- shared helpers for the Task 10 ATP pocket figure.
+pocket_lib.py -- shared helpers for the ATP pocket figure.
 
 Prepares coordinates, selections and the frame-corrected drug pose. The active
 site PCA and averaged pocket live in the NTL fitted frame (backbone, GRO 5-97,

@@ -32,7 +32,7 @@ F1994L was excluded from comparative analysis: AlphaFold2 predicted this variant
 
 ## Key Findings
 
-**Q2022P produces a population-shift resistance mechanism.** Proline substitution at the hinge (ROS1 2022) reduces ATP pocket open-state occupancy from 84% (WT) to 49%, without substantially reducing crizotinib binding affinity in the open state (−8.463 vs −8.644 kcal/mol). Resistance arises from reduced conformational accessibility, not reduced affinity. Q2022P paradoxically increases lorlatinib affinity (−8.224 vs −7.200 kcal/mol), consistent with the compact conformation being more complementary to lorlatinib's macrocyclic scaffold.
+**Q2022P produces a population-shift resistance mechanism.** Proline substitution at the hinge (ROS1 2022) reduces ATP pocket open-state occupancy from 81% (WT) to 65%, without substantially reducing crizotinib binding affinity in the open state (−8.463 vs −8.644 kcal/mol). Resistance arises from reduced conformational accessibility, not reduced affinity. Q2022P paradoxically increases lorlatinib affinity (−8.224 vs −7.200 kcal/mol), consistent with the compact conformation being more complementary to lorlatinib's macrocyclic scaffold.
 
 **S1986F and S1986Y act as conformational suppressors.** In compound mutations with Q2022P, both secondary mutations partially compensate the Q2022P-induced conformational shift through distinct structural mechanisms driven by the single chemical difference of a para-hydroxyl group. LDA separates all three compound systems from WT with perfect replica-level separation (Cohen's d: −0.748, −0.464, −0.792).
 

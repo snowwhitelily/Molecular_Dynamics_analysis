@@ -7,7 +7,7 @@ Vilacha et al. 2025, Zenodo 10.5281/zenodo.15236275), verified DFG-out here by
 the K1980 vertex angle (67.7 deg vs the paper's ~72 deg) and by the F2103 chi1
 being trans (172.9 deg) rather than gauche.
 
-The Task 5 box CANNOT be reused. Two independent reasons:
+The ATP-site box CANNOT be reused. Two independent reasons:
   1. It is expressed in the coordinate frame of our own MD receptors. The
      Zenodo structure comes from a different simulation box entirely, so those
      numbers point at empty space here.

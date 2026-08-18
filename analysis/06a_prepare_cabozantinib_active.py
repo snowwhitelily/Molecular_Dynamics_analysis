@@ -3,14 +3,14 @@
 06a_prepare_cabozantinib_active.py
 
 Dock cabozantinib into the five existing active-form receptors, reusing the
-Task 5 box so the numbers are directly comparable with the other five ligands
+the ATP-site box so the numbers are directly comparable with the other five ligands
 already in the table.
 
 Cabozantinib is a type II inhibitor and binds the DFG-out inactive
 conformation, so a poor affinity here is the expected result, not a failure.
 It is the control that gives the inactive-form number its meaning.
 
-Writes configs in the same format as the existing Task 5 configs. Note that the
+Writes configs in the same format as the existing ATP-site configs. Note that the
 "log" keyword is deliberately absent: Vina 1.2.x removed it, and the run script
 captures output with tee instead, which is what the existing pipeline does.
 
@@ -34,7 +34,7 @@ LOG_DIR = VINA / "vina_logs"
 
 LIGAND = "cabozantinib"
 
-# Task 5 box, reused unchanged so the active-form values stay comparable
+# ATP-site box, reused unchanged so the active-form values stay comparable
 BOX = dict(center_x=68.6, center_y=64.5, center_z=23.68,
            size_x=25.0, size_y=20.0, size_z=20.0)
 EXHAUSTIVENESS = 16
