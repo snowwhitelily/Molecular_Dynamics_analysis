@@ -72,7 +72,15 @@ The dashboard loads pipeline outputs directly from the results directory and fal
 ## Repository Contents
 
 ```
-analysis/                          Pipeline scripts (preprocessing through ensemble docking)
+analysis/                          Numbered pipeline, run in order of prefix:
+  01_*                             Load trajectories, align, build masks
+  02a-02f_*                        PCA subspaces, clustering, transitions
+  03a-03c_*                        Structural metrics, distance PCA, free energy landscapes
+  04-04c_*                         Linear discriminant analysis
+  05a-05c_*                        Q2022P docking preparation and ranking
+  06a-06f_*                        Cabozantinib active/inactive-state docking
+                                   (pipeline imports shared helpers from analysis/scripts/;
+                                    run scripts from the analysis/ directory)
 analysis/dashboard.py              Interactive Streamlit dashboard
 analysis/scripts/                  Shared utilities including Princomp and Colorinator classes
 docs/                              Pipeline flowchart and supporting documentation
@@ -95,16 +103,16 @@ Beyond the core active-state analysis of five baseline FDA-approved inhibitors, 
 
 * **Active-Site PCA & Conformation Violins** 
   * Characterizes active-site conformational spaces using Principal Component Analysis (`analysis/02b2_pca_activesite.py`, `analysis/scripts/pca.py`).
-  * Generates publication-ready PCA projection overlays comparing variants (`analysis/plot_pca_overlay_paper.py`) and automates the rendering of PC1 conformational distribution violins directly inside PyMOL (`analysis/pymol_B_pc1_violin.py`).
+  * Generates publication-ready PCA projection overlays comparing variants (`analysis/scripts/plot_pca_overlay_paper.py`) and automates the rendering of PC1 conformational distribution violins directly inside PyMOL (`analysis/scripts/pymol_B_pc1_violin.py`).
 * **DFG Conformation Quality Control & Target Selection**
-  * Custom geometric engines (`analysis/check_dfg_angle.py`, `analysis/check_dfg_calibrate.py`, `analysis/check_dfg_state.py`) programmatically calculate crucial dihedral angles to verify active (DFG-in) vs. inactive (DFG-out) state orientations prior to docking.
+  * Custom geometric engines (`analysis/scripts/check_dfg_angle.py`, `analysis/scripts/check_dfg_calibrate.py`, `analysis/scripts/check_dfg_state.py`) programmatically calculate crucial dihedral angles to verify active (DFG-in) vs. inactive (DFG-out) state orientations prior to docking.
   * Specialized script to select and extract representative receptor coordinate frames for the Q2022P mutant and associated family variants (`analysis/05a_select_extract_docking_receptors_q2022p.py`).
 * **Cabozantinib Inactive-State (Type II) Docking Pipeline**
   * A fully automated pipeline (`analysis/run_inactive_pipeline.sh`) that orchestrates mutating inactive template structures (`analysis/06d_mutate_inactive_receptors.py`), preparing docking grids (`analysis/06e_prepare_inactive_mutants_dock.py`), running docking trials across states (`analysis/06a_prepare_cabozantinib_active.py`, `analysis/06b_prepare_cabozantinib_inactive.py`), and analyzing poses (`analysis/06c_rank_cabozantinib.py`, `analysis/06f_analyze_cabozantinib_poses.py`).
-  * Yields high-resolution comparative figures detailing active vs. inactive binding affinity trends (`analysis/plot_cabozantinib_results.py`) and formats final docking summaries styled specifically for journal submission (`analysis/plot_docking_results_paper.py`).
+  * Yields high-resolution comparative figures detailing active vs. inactive binding affinity trends (`analysis/scripts/plot_cabozantinib_results.py`) and formats final docking summaries styled specifically for journal submission (`analysis/scripts/plot_docking_results_paper.py`).
 * **Active-Site Pocket Volumetry & Image Composition**
-  * Automated workflows (`make_volume.sh`, `make_pocket_figure.sh`, `make_overview.sh`) to measure active-site volume fluctuations across trajectory frames (`analysis/pocket_volume.py`), clean and prepare coordinate surfaces (`analysis/pocket_prep.py`, `analysis/pocket_lib.py`), and generate raw ray-traced image renders (`analysis/pocket_render.py`, `analysis/overview_render.py`).
-  * Merges structural outputs and metric labels into polished multi-panel figures (`analysis/pocket_compose.py`, `analysis/overview_compose.py`, `analysis/pocket_panel.py`).
+  * Automated workflows (`make_volume.sh`, `make_pocket_figure.sh`, `make_overview.sh`) to measure active-site volume fluctuations across trajectory frames (`analysis/scripts/pocket_volume.py`), clean and prepare coordinate surfaces (`analysis/scripts/pocket_prep.py`, `analysis/scripts/pocket_lib.py`), and generate raw ray-traced image renders (`analysis/scripts/pocket_render.py`, `analysis/scripts/overview_render.py`).
+  * Merges structural outputs and metric labels into polished multi-panel figures (`analysis/scripts/pocket_compose.py`, `analysis/scripts/overview_compose.py`, `analysis/scripts/pocket_panel.py`).
 
 ## Limitations and Future Work
 

@@ -95,9 +95,9 @@ The scripts detailed below support the high-throughput docking refactoring, geom
 
 ### Conformation Quality Control, PCA, & Receptor Selection
 * **`analysis/02b2_pca_activesite.py` / `analysis/scripts/pca.py`**: Runs PCA on the active-site trajectory coordinates to identify principal modes of motion[cite: 5].
-* **`analysis/plot_pca_overlay_paper.py`**: Generates high-quality PCA projection overlays comparing the conformational spaces of different variants for the manuscript.
-* **`analysis/pymol_B_pc1_violin.py`**: Renders PC1 conformational violin distributions directly inside PyMOL[cite: 3, 5].
-* **`analysis/check_dfg_angle.py` / `analysis/check_dfg_state.py` / `analysis/check_dfg_calibrate.py`**: Geometry engines measuring and calibrating DFG dihedral angles to programmatically classify structural states.
+* **`analysis/scripts/plot_pca_overlay_paper.py`**: Generates high-quality PCA projection overlays comparing the conformational spaces of different variants for the manuscript.
+* **`analysis/scripts/pymol_B_pc1_violin.py`**: Renders PC1 conformational violin distributions directly inside PyMOL[cite: 3, 5].
+* **`analysis/scripts/check_dfg_angle.py` / `analysis/scripts/check_dfg_state.py` / `analysis/scripts/check_dfg_calibrate.py`**: Geometry engines measuring and calibrating DFG dihedral angles to programmatically classify structural states.
 * **`analysis/05a_select_extract_docking_receptors_q2022p.py`**: Automated extraction of representative receptor coordinate frames for the Q2022P mutant and associated variants to use as targets in docking[cite: 5].
 
 ### Cabozantinib Inactive-State (Type II) Docking & Paper Plots
@@ -106,11 +106,11 @@ The scripts detailed below support the high-throughput docking refactoring, geom
 * **`analysis/06d_mutate_inactive_receptors.py`**: Automates point mutations on the inactive DFG-out template structure.
 * **`analysis/06e_prepare_inactive_mutants_dock.py`**: Generates grid parameters and receptors for Vina docking across all mutants.
 * **`analysis/06c_rank_cabozantinib.py` / `06f_analyze_cabozantinib_poses.py`**: Extracts, filters, and ranks output docking poses.
-* **`analysis/plot_cabozantinib_results.py`**: Generates high-resolution comparative figures (active vs. inactive bar chart and combined heatmaps) with automated text contrast and bounding-box safety padding[cite: 1].
-* **`analysis/plot_docking_results_paper.py`**: Visualizes and formats the final docking results across all screened drugs and variants styled for journal submission.
+* **`analysis/scripts/plot_cabozantinib_results.py`**: Generates high-resolution comparative figures (active vs. inactive bar chart and combined heatmaps) with automated text contrast and bounding-box safety padding[cite: 1].
+* **`analysis/scripts/plot_docking_results_paper.py`**: Visualizes and formats the final docking results across all screened drugs and variants styled for journal submission.
 
 ### Binding Pocket Volumetry & Image Composition
-* **`analysis/pocket_volume.py` / `make_volume.sh`**: Measures active-site volume changes across trajectory frames to quantify pocket transient states.
-* **`analysis/pocket_prep.py` / `analysis/pocket_lib.py`**: Library functions to clean PDB structures and map atomic surfaces for grid calculation.
-* **`analysis/pocket_render.py` / `analysis/overview_render.py`**: Generates raw ray-traced image outputs of binding pockets and receptor topology.
-* **`analysis/pocket_compose.py` / `analysis/overview_compose.py` / `analysis/pocket_panel.py`**: Merges structural renders and text annotations into clean multi-panel publication figures.
+* **`analysis/scripts/pocket_volume.py` / `make_volume.sh`**: Measures active-site volume changes across trajectory frames to quantify pocket transient states.
+* **`analysis/scripts/pocket_prep.py` / `analysis/scripts/pocket_lib.py`**: Library functions to clean PDB structures and map atomic surfaces for grid calculation.
+* **`analysis/scripts/pocket_render.py` / `analysis/scripts/overview_render.py`**: Generates raw ray-traced image outputs of binding pockets and receptor topology.
+* **`analysis/scripts/pocket_compose.py` / `analysis/scripts/overview_compose.py` / `analysis/scripts/pocket_panel.py`**: Merges structural renders and text annotations into clean multi-panel publication figures.
