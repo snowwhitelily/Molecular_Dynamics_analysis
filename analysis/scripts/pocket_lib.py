@@ -68,13 +68,25 @@ def read_pdbqt_pose1(path):
     return np.asarray(xyz)
 
 
-def correct_drug_to_ntl(drug_xyz, ctlfit_receptor_pdb, ntl_ref_universe):
+def correct_drug_to_ntl(drug_xyz, ctlfit_receptor_pdb, ntl_ref_universe,
+                        fit_sel=None):
+    """Frame-correct a drug pose into the NTL analysis frame.
+
+    fit_sel: MDAnalysis selection to superpose on. Default (None) = the global
+    NTL backbone (original behaviour). For single MD-frame poses, pass a
+    POCKET-LOCAL selection (pocket+hinge CA): the whole-domain backbone can be
+    ~3 A from the averaged reference due to natural fluctuation far from the
+    site, which misplaces the drug, whereas the pocket region superposes tightly
+    (~1 A) and places the drug accurately where it is shown.
+    """
+    sel = fit_sel if fit_sel is not None else NTL_BB_SEL
     recep = mda.Universe(ctlfit_receptor_pdb)
-    mob = recep.select_atoms(NTL_BB_SEL).positions.copy()
-    ref = ntl_ref_universe.select_atoms(NTL_BB_SEL).positions.copy()
+    mob = recep.select_atoms(sel).positions.copy()
+    ref = ntl_ref_universe.select_atoms(sel).positions.copy()
     if mob.shape != ref.shape:
         raise SystemExit(
-            f'NTL backbone mismatch: receptor {mob.shape} vs reference {ref.shape}.')
+            f'fit-selection mismatch ({sel!r}): receptor {mob.shape} vs '
+            f'reference {ref.shape}.')
     mc, rc = mob.mean(0), ref.mean(0)
     R, rmsd = rotation_matrix(mob - mc, ref - rc)
     drug_ntl = (drug_xyz - mc) @ R.T + rc

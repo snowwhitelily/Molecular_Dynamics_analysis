@@ -27,9 +27,15 @@ CUTOFF = float(sys.argv[3]) if len(sys.argv) > 3 else 5.0
 
 BASE = os.path.join(os.environ['HOME'], 'Molecular_Dynamics_analysis')
 TRAJ = os.path.join(BASE, 'trajectories/ros1_prepared_final')
-DOCK = os.path.join(BASE, 'dock/ROS1/q2022p_vina/vina_outputs')
-RECEPTOR = os.path.join(BASE, 'dock/ROS1/q2022p_subset_receptors/actout_ctlfit/WT/'
-                              'WT_actout_ctlfit_dominant_cluster0_rep.pdb')
+# Corrected figure poses: ensemble frames where each drug reaches the hinge
+# (Glu2027/Met2029 = GRO 94/96), frame-corrected against ITS OWN ensemble receptor.
+ENS_DIR = os.path.join(BASE, 'dock/ROS1/q2022p_vina/ensemble_all')
+POSE_FRAME = {
+    'zidesamtinib': 'WT_rep1_f11177_open',    # 3.4 A hinge, score -8.94
+    'lorlatinib':   'WT_rep2_f8870_closed',   # 2.4 A hinge, 53 contacts, -9.91
+}
+DOCK = os.path.join(ENS_DIR, 'vina_outputs_all3d')
+RECEPTOR = os.path.join(ENS_DIR, 'receptor_pdbqt', f'{POSE_FRAME[DRUG]}.pdbqt')
 FIGS = os.path.join(BASE, 'figures/ROS1/ros1_prepared_final/pocket_box')
 os.makedirs(FIGS, exist_ok=True)
 VARIANTS = ['WT', 'S1986F', 'Q2022P', 'Q2022P_S1986F']
@@ -37,7 +43,12 @@ VARIANTS = ['WT', 'S1986F', 'Q2022P', 'Q2022P_S1986F']
 # mutation sites (GRO = real - 1933): 1986 -> 53, 2022 -> 89. Always shown.
 MUT_GRO = [53, 89]
 
-DRUG_PDBQT = os.path.join(DOCK, f'WT_actout_ctlfit_dominant_cluster0_rep__{DRUG}.pdbqt')
+DRUG_PDBQT = os.path.join(DOCK, f'{POSE_FRAME[DRUG]}__{DRUG}.pdbqt')
+# fixed pocket+hinge CA fit selection (drug-independent, avoids circularity with
+# the distance-based pocket): superposes tightly (~1.2 A) so the drug is placed
+# by the conserved binding site, not the whole fluctuating domain.
+FIT_SEL = ('name CA and resid 18 19 20 26 45 47 77 93 94 95 96 97 99 100 '
+           '150 151 152 153 167 168 169')
 
 
 def _ad_to_element(adtype):
@@ -92,8 +103,12 @@ elems = read_pose1_elements(DRUG_PDBQT)
 if len(elems) != len(pose):
     print(f'WARNING: {len(elems)} elements vs {len(pose)} atoms; defaulting to C')
     elems = ['C'] * len(pose)
-drug_ntl, rmsd = PL.correct_drug_to_ntl(pose, RECEPTOR, wt)
-print(f'NTL-only frame-correction RMSD {rmsd:.3f} A, {len(drug_ntl)} drug atoms')
+drug_ntl, rmsd = PL.correct_drug_to_ntl(pose, RECEPTOR, wt, fit_sel=FIT_SEL)
+print(f'pose {POSE_FRAME[DRUG]}: pocket-local frame-correction RMSD {rmsd:.3f} A, '
+      f'{len(drug_ntl)} drug atoms')
+if rmsd > 2.0:
+    raise SystemExit(f'frame-correction RMSD {rmsd:.2f} A too high for {DRUG} '
+                     f'({POSE_FRAME[DRUG]}) - pose would be misplaced, aborting.')
 
 # ---- pocket residue list (force-include the mutation sites) ------------------
 if SELECTION == 'motif':
