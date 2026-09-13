@@ -1,22 +1,28 @@
 """
-PCA density overlay plot for the paper (combined single panel).
+PCA density overlay plot for the paper — revised.
 
-Matches the style of Christa's poster Figure 1: one shared set of axes with a
-single light grey cloud of all frames in the background, and four coloured
-contour pairs on top for the focal variants (WT, S1986F, Q2022P,
-Q2022P + S1986F).
+Produces TWO figures from one run:
+  - MAIN (pca_overlay_paper.png):        grey = pooled frames of the FOUR focal
+                                         variants only. This is the publication
+                                         figure.
+  - SUPP (pca_overlay_supp_all38.png):   grey = every frame from all 38 systems
+                                         (very faint), with the four focal
+                                         variants highlighted on top. This gives
+                                         the broader mutational context and
+                                         justifies the choice of the four.
+
+Both share the same PCA basis, KDE settings, density-estimation method and
+contour levels. Only the grey layer, the display window, the title and the
+output filename differ between them.
 
 Each focal variant is drawn with:
     - a solid contour at the 75% density level (its usual core region)
-    - a dashed contour at the 1% density level (its full explored territory)
+    - a dashed contour at the 99% density level (its full explored territory)
 
 Small orphan contour loops (islands) are removed from the drawing only. The
 frames that produce them stay in the dataset and remain visible in the grey
-background cloud, so nothing is removed from the analysis. This is a display
-choice, not a change to the data.
-
-Output:
-    figures/ROS1/ros1_prepared_final/pca_overlay_paper.png
+cloud, so nothing is removed from the analysis. This is a display choice, not a
+change to the data.
 """
 
 import os
@@ -34,6 +40,38 @@ BASE     = '/homes/lkgyammerah/Molecular_Dynamics_analysis/results/ROS1'
 FIGS_DIR = '/homes/lkgyammerah/Molecular_Dynamics_analysis/figures/ROS1/ros1_prepared_final'
 os.makedirs(FIGS_DIR, exist_ok=True)
 
+# ── Explained variance (axis labels) ───────────────────────────────────────────
+# DO NOT recompute these from actout_ctlfit_scores.npy: that file stores only 10
+# PCs, so variance-from-scores is INFLATED (a naive calc gives 46.8% / 16.7%).
+# TRUTH from the fit verify log (step2c_verify_46998.out): PC1+PC2 = 50.2% of
+# total variance, which splits to PC1 ~= 37%, PC2 ~= 13%. Hard-coded on purpose.
+PC1_VAR = 37
+PC2_VAR = 13
+
+# ── What to render ─────────────────────────────────────────────────────────────
+SCOPES   = ['four', 'all38']          # runs both; comment one out to skip it
+OUTNAMES = {
+    'four':  'pca_overlay_paper.png',        # MAIN publication figure
+    'all38': 'pca_overlay_supp_all38.png',   # supplementary landscape figure
+}
+TITLES = {
+    'four':  'PCA of conformational ensembles for\n'
+             'WT, S1986F, Q2022P, and Q2022P + S1986F',
+    'all38': 'Position of the four selected variants\n'
+             'within the full 38-system PCA landscape',
+}
+# grey point styling per scope (main = subtle; supp = very faint background)
+GREY_STYLE = {
+    'four':  dict(s=1.0, alpha=0.25),
+    'all38': dict(s=0.8, alpha=0.12),
+}
+GREY_SUBSAMPLE = None   # e.g. 40000 to plot a random subset if the PNG is heavy
+
+# 99% (outer, dashed) contour styling — thinned + faded so the 75% cores lead.
+SHOW_99  = True         # set False to drop the 99% contours from the MAIN figure
+C99_LW   = 0.8
+C99_ALPHA = 0.30
+
 # ── Load data ─────────────────────────────────────────────────────────────────
 fp         = pd.read_csv(os.path.join(BASE, 'actout_ctlfit_fel_frame_points.csv'))
 pc1_all    = fp['PC1'].values
@@ -49,21 +87,26 @@ LABELS   = {
     'Q2022P':        'Q2022P',
     'Q2022P_S1986F': 'Q2022P + S1986F',
 }
+# Four clearly distinct hues: blue / green / orange / rose.
 PALETTE  = {
-    'WT':            '#1565C0',
-    'S1986F':        '#2E7D32',
-    'Q2022P':        '#E63946',
-    'Q2022P_S1986F': '#F4511E',
+    'WT':            '#0072B2',   # blue
+    'S1986F':        '#009E73',   # green
+    'Q2022P':        '#E69F00',   # orange
+    'Q2022P_S1986F': '#CC79A7',   # rose
 }
 
-# ── Fixed axis limits ──────────────────────────────────────────────────────────
-pad = 0.05
-x0, x1 = np.percentile(pc1_all, 0.5), np.percentile(pc1_all, 99.5)
-y0, y1 = np.percentile(pc2_all, 0.5), np.percentile(pc2_all, 99.5)
-XLIM = (x0 - pad*(x1-x0), x1 + pad*(x1-x0))
-YLIM = (y0 - pad*(y1-y0), y1 + pad*(y1-y0))
+# frames belonging to the four focal variants (main-figure grey source)
+mask_four = np.isin(mutant_col, VARIANTS)
+pc1_four  = pc1_all[mask_four]
+pc2_four  = pc2_all[mask_four]
+print(f'  of which {mask_four.sum():,} frames are the four focal variants')
 
-# ── KDE helper ────────────────────────────────────────────────────────────────
+# ── KDE / grid settings ────────────────────────────────────────────────────────
+GRID_SIZE = 240
+BW        = 0.25
+GRID_PAD  = 0.35   # per-variant grid margin, as a fraction of that variant's span
+
+# ── KDE helpers ────────────────────────────────────────────────────────────────
 def compute_kde(pc1, pc2, xlim, ylim, grid_size=200, bw=0.25):
     xgrid = np.linspace(xlim[0], xlim[1], grid_size)
     ygrid = np.linspace(ylim[0], ylim[1], grid_size)
@@ -74,7 +117,7 @@ def compute_kde(pc1, pc2, xlim, ylim, grid_size=200, bw=0.25):
     return XX, YY, ZZ
 
 def density_level(ZZ, fraction):
-    """Return the density value that encloses the given fraction of probability mass."""
+    """Density value that encloses the given fraction of probability mass."""
     z_sorted = np.sort(ZZ.ravel())[::-1]
     cumsum   = np.cumsum(z_sorted) / z_sorted.sum()
     idx      = np.searchsorted(cumsum, fraction)
@@ -87,10 +130,9 @@ def polygon_area(verts):
 
 def contour_lines_filtered(XX, YY, ZZ, level, area_frac=0.05):
     """
-    Return contour line segments at the given density level, dropping small
-    orphan loops. A loop is kept only if its area is at least area_frac times
-    the area of the largest loop at that level. This removes visual islands
-    without touching the underlying data.
+    Contour line segments at the given density level, dropping small orphan
+    loops. A loop is kept only if its area is >= area_frac x the largest loop's
+    area. Removes visual islands without touching the underlying data.
     """
     gen   = contour_generator(XX, YY, ZZ)
     lines = gen.lines(level)
@@ -106,101 +148,134 @@ def contour_lines_filtered(XX, YY, ZZ, level, area_frac=0.05):
         print(f'    dropped {dropped} small contour loop(s) at level {level:.6g}')
     return kept
 
-# ── Figure ────────────────────────────────────────────────────────────────────
-fig, ax = plt.subplots(figsize=(8.5, 8), dpi=140)
-fig.patch.set_facecolor('white')
+# ── PASS 1: compute every contour once (shared by both figures) ────────────────
+# Each variant's KDE is evaluated on a grid padded around that variant's own
+# frames, so its density decays to ~0 before the grid edge and both loops close.
+segments  = {}          # variant -> {'outer': [...], 'core': [...]}
+xs_all, ys_all = [], []  # every 99% contour vertex, to size the display window
+core_area = {}           # 75% core area per variant (descriptive only)
 
-# Single light grey cloud of every frame (all systems). Outlier frames of every
-# variant, including the ones that used to form islands, stay visible here.
-ax.scatter(pc1_all, pc2_all,
-           c='#CCCCCC', s=1.2, alpha=0.30,
-           rasterized=True, linewidths=0, zorder=1)
-
-# Core areas enclosed by each variant's 75% contour. This is the quantitative
-# read on how much each variant moves in this projection: a smaller core means
-# a more constrained variant. Reported in PC1 x PC2 units.
-core_area = {}
-
-# Coloured contours per focal variant
 for variant in VARIANTS:
     mask_v   = mutant_col == variant
-    colour   = PALETTE[variant]
     n_frames = mask_v.sum()
+    p1, p2   = pc1_all[mask_v], pc2_all[mask_v]
 
     try:
-        XX, YY, ZZ = compute_kde(
-            pc1_all[mask_v], pc2_all[mask_v],
-            XLIM, YLIM, bw=0.25
-        )
+        sx, sy = p1.max() - p1.min(), p2.max() - p2.min()
+        gxlim  = (p1.min() - GRID_PAD*sx, p1.max() + GRID_PAD*sx)
+        gylim  = (p2.min() - GRID_PAD*sy, p2.max() + GRID_PAD*sy)
 
-        lev75 = density_level(ZZ, 0.75)   # dense core, encloses 75% of mass
-        lev01 = density_level(ZZ, 0.99)   # outer edge, encloses 99% of mass
+        XX, YY, ZZ = compute_kde(p1, p2, gxlim, gylim,
+                                 grid_size=GRID_SIZE, bw=BW)
 
-        # 1% contour (dashed, outer). This is where islands appear, so filter.
-        # Softened (thinner, semi transparent) so the solid cores read first.
-        for seg in contour_lines_filtered(XX, YY, ZZ, lev01, area_frac=0.05):
-            ax.plot(seg[:, 0], seg[:, 1], color=colour,
-                    lw=1.0, ls='dashed', alpha=0.40, zorder=3)
+        lev75 = density_level(ZZ, 0.75)
+        lev99 = density_level(ZZ, 0.99)
 
-        # 75% contour (solid, core). Filter too for safety, harmless if none.
-        core_segs = contour_lines_filtered(XX, YY, ZZ, lev75, area_frac=0.05)
-        for seg in core_segs:
-            ax.plot(seg[:, 0], seg[:, 1], color=colour,
-                    lw=2.4, ls='solid', zorder=4)
+        outer = contour_lines_filtered(XX, YY, ZZ, lev99, area_frac=0.05)
+        core  = contour_lines_filtered(XX, YY, ZZ, lev75, area_frac=0.05)
+        segments[variant] = {'outer': outer, 'core': core}
 
-        # Sum the areas of the kept 75% loops for this variant.
+        for seg in outer:
+            xs_all.append(seg[:, 0]); ys_all.append(seg[:, 1])
+
         core_area[variant] = sum(
-            polygon_area(seg) for seg in core_segs if len(seg) >= 3
+            polygon_area(seg) for seg in core if len(seg) >= 3
         )
-
         print(f'{variant}: n={n_frames:,}, lev75={lev75:.6f}, '
-              f'lev01={lev01:.6f}, 75%_core_area={core_area[variant]:.6f}')
+              f'lev99={lev99:.6f}, 75%_core_area={core_area[variant]:.6f}')
 
     except Exception as e:
         print(f'KDE failed for {variant}: {e}')
+        segments[variant] = {'outer': [], 'core': []}
 
-# ── 75% core area summary ──────────────────────────────────────────────────────
-# Smallest core = most constrained variant in this projection.
+# ── 75% core area summary (console diagnostic; descriptive, not on the figure) ──
 if core_area:
-    print('\n75% core area by variant (smaller = more constrained):')
+    print('\n75% core area by variant (smaller = more constrained in this projection):')
     ref = core_area.get('WT')
     for v in sorted(core_area, key=core_area.get):
         rel = f'  ({core_area[v] / ref * 100:5.1f}% of WT)' if ref else ''
         print(f'  {LABELS[v]:<18} {core_area[v]:.6f}{rel}')
 
-ax.set_xlim(XLIM)
-ax.set_ylim(YLIM)
-ax.set_xlabel('PC1 (actout_ctlfit)', fontsize=11)
-ax.set_ylabel('PC2 (actout_ctlfit)', fontsize=11)
-ax.tick_params(labelsize=9)
-ax.spines['top'].set_visible(False)
-ax.spines['right'].set_visible(False)
+# ── Display window, sized per scope ────────────────────────────────────────────
+# Always guarantee every 99% contour is shown in full; the percentile clamp uses
+# the four-variant frames for the MAIN figure (zoom to the four) and all frames
+# for the SUPP figure (zoom out to the whole landscape). Square + equal aspect
+# keeps the PCA space undistorted.
+def compute_window(scope):
+    cx = np.concatenate(xs_all) if xs_all else pc1_all
+    cy = np.concatenate(ys_all) if ys_all else pc2_all
+    px1, px2 = (pc1_all, pc2_all) if scope == 'all38' else (pc1_four, pc2_four)
+    xmin = min(cx.min(), np.percentile(px1, 0.5))
+    xmax = max(cx.max(), np.percentile(px1, 99.5))
+    ymin = min(cy.min(), np.percentile(px2, 0.5))
+    ymax = max(cy.max(), np.percentile(px2, 99.5))
+    lo   = min(xmin, ymin)
+    hi   = max(xmax, ymax)
+    mrg  = 0.04 * (hi - lo)
+    return (lo - mrg, hi + mrg)
 
-# ── Legend ─────────────────────────────────────────────────────────────────────
-variant_handles = [
-    Line2D([0], [0], color=PALETTE[v], lw=2.4, ls='solid', label=LABELS[v])
-    for v in VARIANTS
-]
-style_handles = [
-    Line2D([0], [0], color='grey', lw=0, marker='o',
-           markerfacecolor='#CCCCCC', markersize=7, label='All frames'),
-    Line2D([0], [0], color='black', lw=2.4, ls='solid', label='75% density'),
-    Line2D([0], [0], color='black', lw=1.4, ls='dashed', label='1% density'),
-]
-leg1 = ax.legend(handles=variant_handles, loc='upper left',
-                 fontsize=9, frameon=False, title='Variant')
-ax.add_artist(leg1)
-ax.legend(handles=style_handles, loc='lower left',
-          fontsize=9, frameon=False)
+# ── Render one figure for a given scope ────────────────────────────────────────
+def render(scope):
+    win = compute_window(scope)
+    fig, ax = plt.subplots(figsize=(8, 8), dpi=140)
+    fig.patch.set_facecolor('white')
 
-ax.set_title(
-    'actout_ctlfit PCA — WT, S1986F, Q2022P, and Q2022P + S1986F\n'
-    'Grey = all frames  |  Coloured contours at 1% and 75% density levels',
-    fontsize=11, fontweight='bold'
-)
+    # grey background frames (scoped)
+    gx, gy = (pc1_all, pc2_all) if scope == 'all38' else (pc1_four, pc2_four)
+    if GREY_SUBSAMPLE and len(gx) > GREY_SUBSAMPLE:
+        idx = np.random.default_rng(0).choice(len(gx), GREY_SUBSAMPLE, replace=False)
+        gx, gy = gx[idx], gy[idx]
+    gs = GREY_STYLE[scope]
+    ax.scatter(gx, gy, c='#CCCCCC', s=gs['s'], alpha=gs['alpha'],
+               rasterized=True, linewidths=0, zorder=1)
 
-plt.tight_layout()
-out = os.path.join(FIGS_DIR, 'pca_overlay_paper.png')
-plt.savefig(out, dpi=150, bbox_inches='tight', facecolor='white')
-plt.close()
-print(f'Saved: {out}')
+    # contours (identical in both figures)
+    for variant in VARIANTS:
+        colour = PALETTE[variant]
+        if SHOW_99:
+            for seg in segments[variant]['outer']:
+                ax.plot(seg[:, 0], seg[:, 1], color=colour,
+                        lw=C99_LW, ls='dashed', alpha=C99_ALPHA, zorder=3)
+        for seg in segments[variant]['core']:
+            ax.plot(seg[:, 0], seg[:, 1], color=colour,
+                    lw=2.4, ls='solid', zorder=4)
+
+    ax.set_xlim(win)
+    ax.set_ylim(win)
+    ax.set_aspect('equal')
+    ax.set_xlabel(f'PC1 ({PC1_VAR}%)', fontsize=11)
+    ax.set_ylabel(f'PC2 ({PC2_VAR}%)', fontsize=11)
+    ax.tick_params(labelsize=9)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+
+    # legend
+    variant_handles = [
+        Line2D([0], [0], color=PALETTE[v], lw=2.4, ls='solid', label=LABELS[v])
+        for v in VARIANTS
+    ]
+    grey_label = 'All frames (38 systems)' if scope == 'all38' else 'Frames (4 variants)'
+    style_handles = [
+        Line2D([0], [0], color='grey', lw=0, marker='o',
+               markerfacecolor='#CCCCCC', markersize=7, label=grey_label),
+        Line2D([0], [0], color='black', lw=2.4, ls='solid', label='75% density'),
+    ]
+    if SHOW_99:
+        style_handles.append(
+            Line2D([0], [0], color='black', lw=C99_LW, ls='dashed', label='99% density'))
+    leg1 = ax.legend(handles=variant_handles, loc='upper left',
+                     fontsize=9, frameon=False, title='Variant')
+    ax.add_artist(leg1)
+    ax.legend(handles=style_handles, loc='lower left', fontsize=9, frameon=False)
+
+    ax.set_title(TITLES[scope], fontsize=12, fontweight='bold')
+
+    plt.tight_layout()
+    out = os.path.join(FIGS_DIR, OUTNAMES[scope])
+    plt.savefig(out, dpi=150, bbox_inches='tight', facecolor='white')
+    plt.close()
+    print(f'Saved: {out}')
+
+# ── Render both ────────────────────────────────────────────────────────────────
+for scope in SCOPES:
+    render(scope)
