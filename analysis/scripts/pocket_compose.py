@@ -36,6 +36,22 @@ for ax, v, letter in zip(axes.ravel(), ORDER, PANEL_LETTER):
     ax.set_title(LABELS[v], fontsize=15, fontweight='bold', color=PALETTE[v], pad=8)
     ax.text(0.01, 0.99, letter, transform=ax.transAxes, fontsize=20, fontweight='bold',
             va='top', ha='left', color='black')
+    # mutation-site text labels (fixed positions: camera is shared across panels,
+    # so both clusters sit at the same screen spot in every panel and both drugs)
+    import matplotlib.patheffects as _pe
+    # label (text) and the cluster it points to (arrow tip), axes fractions.
+    # 2022 = upper: label high, arrow points DOWN to cluster.
+    # 1986 = lower: label low, arrow points UP to cluster.
+    _lab = {'2022': dict(txt=(0.82, 0.72), tip=(0.74, 0.60)),
+            '1986': dict(txt=(0.86, 0.26), tip=(0.80, 0.40))}
+    for _name, _d in _lab.items():
+        ax.annotate(_name, xy=_d['tip'], xytext=_d['txt'],
+                    xycoords='axes fraction', textcoords='axes fraction',
+                    fontsize=13, fontweight='bold', color='black',
+                    va='center', ha='left',
+                    path_effects=[_pe.withStroke(linewidth=3, foreground='white')],
+                    arrowprops=dict(arrowstyle='-|>', color='black', lw=2.0,
+                                    mutation_scale=16, shrinkA=4, shrinkB=4))
     ax.axis('off')
 
 legend = [
