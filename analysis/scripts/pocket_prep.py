@@ -34,6 +34,7 @@ POSE_FRAME = {
     'zidesamtinib': 'WT_rep1_f11177_open',    # 3.4 A hinge, score -8.94
     'lorlatinib':   'WT_rep2_f8870_closed',   # 2.4 A hinge, 53 contacts, -9.91
     'cabozantinib': 'WT_rep1_f6240_open',      # 3.0 A hinge, score -9.95
+    'ceritinib':    'WT_rep2_f4697_closed',    # best WT ceritinib score -9.68 (all3d)
 }
 DOCK = os.path.join(ENS_DIR, 'vina_outputs_all3d')
 RECEPTOR = os.path.join(ENS_DIR, 'receptor_pdbqt', f'{POSE_FRAME[DRUG]}.pdbqt')

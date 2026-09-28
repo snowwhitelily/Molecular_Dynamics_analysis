@@ -42,8 +42,14 @@ for ax, v, letter in zip(axes.ravel(), ORDER, PANEL_LETTER):
     # label (text) and the cluster it points to (arrow tip), axes fractions.
     # 2022 = upper: label high, arrow points DOWN to cluster.
     # 1986 = lower: label low, arrow points UP to cluster.
-    _lab = {'2022': dict(txt=(0.82, 0.72), tip=(0.74, 0.60)),
-            '1986': dict(txt=(0.86, 0.26), tip=(0.80, 0.40))}
+    _LAB_DEFAULT = {'2022': dict(txt=(0.82, 0.72), tip=(0.74, 0.60)),
+                    '1986': dict(txt=(0.86, 0.26), tip=(0.80, 0.40))}
+    _LAB_BY_DRUG = {
+        # ceritinib frame differs -> 1986 up, 2022 down; tune tip= to hit clusters
+        'ceritinib': {'1986': dict(txt=(0.82, 0.72), tip=(0.82, 0.57)),
+                      '2022': dict(txt=(0.86, 0.26), tip=(0.80, 0.34))},
+    }
+    _lab = _LAB_BY_DRUG.get(DRUG, _LAB_DEFAULT)
     for _name, _d in _lab.items():
         ax.annotate(_name, xy=_d['tip'], xytext=_d['txt'],
                     xycoords='axes fraction', textcoords='axes fraction',
