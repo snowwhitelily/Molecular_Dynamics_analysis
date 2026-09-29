@@ -1,0 +1,11 @@
+mutant,conformation,ligand,affinity_kcal_mol,receptor_stem
+Q2022P,active,cabozantinib,-9.898,Q2022P_actout_ctlfit_dominant_cluster0_rep
+Q2022P,inactive,cabozantinib,-7.593,ROS1_Q2022P_i
+Q2022P_S1986F,active,cabozantinib,-7.482,Q2022P_S1986F_actout_ctlfit_dominant_cluster0_rep
+Q2022P_S1986F,inactive,cabozantinib,-7.523,ROS1_Q2022P_S1986F_i
+Q2022P_S1986Y,active,cabozantinib,-6.973,Q2022P_S1986Y_actout_ctlfit_dominant_cluster0_rep
+Q2022P_S1986Y,inactive,cabozantinib,-7.09,ROS1_Q2022P_S1986Y_i
+S1986F,active,cabozantinib,-6.695,S1986F_actout_ctlfit_dominant_cluster0_rep
+S1986F,inactive,cabozantinib,-7.456,ROS1_S1986F_i
+WT,active,cabozantinib,-10.217,WT_actout_ctlfit_dominant_cluster0_rep
+WT,inactive,cabozantinib,-9.761,ROS1_WT_i

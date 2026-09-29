@@ -1,0 +1,7 @@
+{
+  "prefix": "actout_ctlfit",
+  "title_prefix": "ACT-OUT CTL-fit",
+  "pca_stride": 10,
+  "ncomponents": 10,
+  "selection_atom_count": 1088
+}

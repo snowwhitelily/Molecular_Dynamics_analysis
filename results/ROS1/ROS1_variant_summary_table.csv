@@ -1,0 +1,39 @@
+Variant,N_Frames,actout_PC1_mean,actout_PC2_mean,DBSCAN_Noise_Pct,Classification
+WT,3863,0.005,-0.007,0.83,Reference
+C2060G,3933,0.011,0.0069,1.27,Resistance mutant
+D1988N,3951,-0.0027,0.0072,1.24,Resistance mutant
+D2033N,3945,0.0356,-0.0047,0.79,Resistance mutant
+D2113G,3805,-0.04,0.0011,0.16,Resistance mutant
+D2113N,3801,-0.0327,0.0084,0.08,Resistance mutant
+E1935G,3803,-0.0265,-0.018,0.34,Resistance mutant
+E1990G,3982,-0.0007,-0.0011,0.83,Resistance mutant
+E2020K,3800,-0.0009,0.0226,2.5,Resistance mutant
+E2131Q,3811,0.0546,0.0192,4.28,Resistance mutant
+F2004C,3659,-0.0349,-0.0314,5.14,Resistance mutant
+F2004L,2853,0.0057,-0.0044,1.26,Resistance mutant
+F2004V,2947,0.0056,-0.0101,0.44,Resistance mutant
+F2075V,2908,0.0191,-0.0031,0.55,Resistance mutant
+G1957A,3023,-0.0483,-0.0019,0.3,Resistance mutant
+G1971E,2960,-0.0111,-0.0073,0.1,Resistance mutant
+G2032K,2905,-0.0416,-0.0081,0.21,Resistance mutant
+G2032R,2920,-0.0225,-0.0118,0.68,Resistance mutant
+G2048A_NC,2570,-0.0005,0.0007,5.21,Negative control
+G2101A,2851,0.013,-0.0051,0.84,Resistance mutant
+H1999Q_NC,2805,0.0141,-0.0125,1.64,Negative control
+L1947R,2922,0.0002,0.0176,1.95,Resistance mutant
+L1951R,2934,0.0037,0.0212,5.18,Resistance mutant
+L1982F,2897,0.0379,0.0116,1.45,Resistance mutant
+L1982V,2902,0.0033,0.0001,7.27,Resistance mutant
+L2010M,2911,-0.0273,0.0056,0.82,Resistance mutant
+L2026M,2890,-0.0008,-0.0021,,Resistance mutant
+L2053V_NC,2933,0.0213,0.0155,1.36,Negative control
+L2086F,2940,-0.0007,-0.0179,3.5,Resistance mutant
+L2155S,2919,0.0223,0.0044,2.26,Resistance mutant
+Q2022P,2969,-0.0146,-0.0122,4.51,Resistance mutant
+Q2022P_S1986F,2806,-0.0159,-0.0147,1.53,Compound/suppressor
+Q2022P_S1986Y,2945,-0.0347,0.0063,2.07,Compound/suppressor
+R2078K,2829,0.0277,0.0068,0.95,Resistance mutant
+S1986F,2852,0.008,0.0111,0.25,Resistance mutant
+S1986Y,2830,0.0443,0.0107,4.31,Resistance mutant
+V2089M,2826,0.0004,-0.0083,1.2,Resistance mutant
+V2098I,2907,0.0346,0.0014,3.61,Resistance mutant

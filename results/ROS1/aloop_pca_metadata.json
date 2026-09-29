@@ -1,0 +1,7 @@
+{
+  "prefix": "aloop",
+  "title_prefix": "A-loop",
+  "pca_stride": 10,
+  "ncomponents": 10,
+  "selection_atom_count": 104
+}

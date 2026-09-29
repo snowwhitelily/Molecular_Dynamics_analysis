@@ -1,24 +1,43 @@
-# Core Scientific & Data Processing
+# ============================================================
+# ROS1 Kinase MD & Docking Analysis — Python dependencies
+# ============================================================
+# Python 3.13, installed in a virtual environment:
+#     python -m venv ros1_analysis_env
+#     source ros1_analysis_env/bin/activate
+#     pip install -r requirements.txt
+#
+# PyMOL is not a pip dependency. Structural rendering uses the system
+# Open-Source PyMOL 3.1.0 (see METHODS.md); the analysis-environment
+# packages are made available to it via PYTHONPATH at render time.
+# ============================================================
+
+# Core scientific & data processing
 numpy==2.3.5
 pandas==2.3.3
 scipy==1.16.3
 scikit-learn==1.8.0
 hdbscan==0.8.41
 
-# Plotting & Visualization
+# Plotting & visualisation
 matplotlib==3.10.8
 seaborn==0.13.2
 Pillow==12.0.0
 
-# Trajectory & Structural Analysis
+# Trajectory & structural analysis
 MDAnalysis==2.10.0
 GridDataFormats==1.0.2
 
-# Molecular Docking, Cheminformatics & Surface Grids
+# Molecular docking & cheminformatics
 meeko==0.7.1
 rdkit==2026.3.1
 gemmi==0.7.5
 
-# UI & Utilities
+# Inactive-state (DFG-out) receptor preparation:
+# point mutation and energy minimisation of the inactive template
+# (analysis/06d2_mutate_minimize_inactive.py), installed from conda-forge.
+openmm==8.6
+pdbfixer
+
+# UI & utilities
 tqdm==4.67.1
 streamlit==1.57.0

@@ -1,0 +1,11 @@
+{
+  "prefix": "actout_ctlfit",
+  "n_pcs": 5,
+  "min_cluster_size": 50,
+  "eps": 0.9,
+  "min_samples": 60,
+  "n_clusters_hdb": 0,
+  "noise_fraction_hdb": 1.0,
+  "n_clusters_db": 1,
+  "noise_fraction_db": 0.018411231266676088
+}

@@ -1,0 +1,7 @@
+{
+  "prefix": "actin",
+  "title_prefix": "ACT-IN",
+  "pca_stride": 10,
+  "ncomponents": 10,
+  "selection_atom_count": 1088
+}

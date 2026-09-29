@@ -1,0 +1,6 @@
+mutant,cluster_db,count,fraction,wt_fraction,enrichment_vs_wt
+Q2022P,0,2835,1.0,1.0,0.0
+Q2022P_S1986F,0,2763,1.0,1.0,0.0
+Q2022P_S1986Y,0,2884,1.0,1.0,0.0
+S1986F,0,2845,1.0,1.0,0.0
+WT,0,3831,1.0,1.0,0.0
