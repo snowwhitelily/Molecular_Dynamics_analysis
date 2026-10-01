@@ -73,7 +73,7 @@ fig.legend(handles=legend, loc='lower center', ncol=3, fontsize=11,
 
 fig.suptitle(
     f'ATP-binding pocket comparison across WT and mutants \u2014 {drugcap}\n'
-    f'WT reference (grey) overlaid with each mutant; PC1 motility as boxplots',
+    f'WT reference (grey) overlaid with each mutant; PC1 mobility as boxplots',
     fontsize=14, fontweight='bold', y=0.995)
 
 plt.subplots_adjust(wspace=0.03, hspace=0.07)
