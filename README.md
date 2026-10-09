@@ -48,8 +48,9 @@ with **AlphaFold2** from the UniProt canonical sequence of human ROS1
 (P08922, kinase-domain residues 1934–2225). Simulations used the **AMBER99SB-ILDN**
 force field, **TIP3P** water, and **GROMACS 2024.5**.
 
-*F1994L was excluded from the comparative analysis:* AlphaFold2 predicted it in a
-distinct inactive-like conformation not comparable to the rest of the panel.
+117 simulations were run across 39 systems; F1994L was excluded — AlphaFold2 predicted
+it in a distinct inactive-like conformation not comparable to the rest of the panel —
+so **114 trajectories across 38 systems** entered the comparative analysis.
 
 Trajectory files (~62 µs) are too large to version here; the computed analysis
 outputs needed to reproduce the figures are provided under `results/` (see
