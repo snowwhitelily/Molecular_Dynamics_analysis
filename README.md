@@ -111,10 +111,27 @@ DFG-state and αC-helix geometry were validated against a published ROS1 referen
 (Vilachã et al., 2025), and receptor provenance and state caveats are documented
 alongside the figures.
 
-Corrected docking tables, per-drug method notes, and the honesty caveats
-(Vina scores are not IC₅₀; the active receptors are activation-loop-out models; the
-inactive structure is a single validated DFG-out conformation) are recorded in
-`COAUTHOR_summary_ensemble_corrected_v4.md`.
+The honesty caveats apply throughout: Vina scores are not IC₅₀; the active-state
+receptors are activation-loop-out models; and the inactive structure is a single
+validated DFG-out conformation.
+
+---
+
+## Key figures (publication extension)
+
+**Pocket geometry across variants.** Per-residue ATP-pocket distances for each variant,
+with the docked inhibitor shown for spatial reference.
+
+![Pocket distance — ceritinib](figures/ROS1/ros1_prepared_final/pocket_box/pocket_distance_ceritinib.png)
+![Pocket distance — zidesamtinib](figures/ROS1/ros1_prepared_final/pocket_box/pocket_distance_zidesamtinib.png)
+![Pocket distance — lorlatinib](figures/ROS1/ros1_prepared_final/pocket_box/pocket_distance_lorlatinib.png)
+
+**Binding-mode and state analysis.** Active- and inactive-state (DFG-out) binding poses
+for the two featured TKIs.
+
+![Binding, active state — cabozantinib](figures/ROS1/ros1_prepared_final/pocket_box/binding_active_cabozantinib.png)
+![Binding, active state — zidesamtinib](figures/ROS1/ros1_prepared_final/pocket_box/binding_active_zidesamtinib.png)
+![Binding, inactive (DFG-out) state — cabozantinib](figures/ROS1/ros1_prepared_final/pocket_box/binding_inactive_cabozantinib.png)
 
 ---
 
