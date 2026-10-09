@@ -81,6 +81,7 @@ numeric prefix.
 | `05aa_prepare_receptors_pdbqt_q2022p.py` | Receptor PDBQT preparation (Meeko) |
 | `05ab_prepare_ligands_pdbqt_q2022p.py` | Ligand PDBQT preparation (crizotinib, lorlatinib) |
 | `05b_prepare_vina_q2022p.py` | Vina job preparation |
+| `05d_run_vina_q2022p.py` | AutoDock Vina docking (8 jobs: 4 receptors × 2 ligands) |
 | `05c_rank_vina_results_q2022p.py` | Rank and extract docking results |
 
 Docking box: 25 × 20 × 20 Å centred on the ATP-binding pocket; exhaustiveness 16.
@@ -103,21 +104,18 @@ docking. Scripts are `analysis/06*`:
   `results/ROS1/step6r_ensemble_scores_all3d.csv`.
 - **Pocket openness** (`06o`, `06p`, `06r`) — open-state occupancy per variant.
 
-Corrected docking tables and per-inhibitor method notes are recorded in
-`COAUTHOR_summary_ensemble_corrected_v4.md`.
-
 ---
 
 ## Figure generation
 
 ### Conformational figures
 
-| Script | Output |
-|---|---|
-| `scripts/pymol_A_wt_vs_q2022p_overlay.py` | WT vs Q2022P structural overlay |
-| `scripts/pymol_B_pc1_violin.py` | PC1 conformational violin (WT) |
-| `scripts/pymol_C_family_ld1.py` | Q2022P-family LD1 on structure and distributions |
-| `scripts/plot_pca_overlay_paper.py` | PCA projection overlays |
+| Script | Output | Figure |
+|---|---|---|
+| `scripts/pymol_A_wt_vs_q2022p_overlay.py` | WT vs Q2022P structural overlay | Figure 4.3 |
+| `scripts/pymol_B_pc1_violin.py` | PC1 conformational violin (WT) | Figure 4.1B |
+| `scripts/pymol_C_family_ld1.py` | Q2022P-family LD1 on structure and distributions | Figures 4.5, 4.6 |
+| `scripts/plot_pca_overlay_paper.py` | PCA projection overlays | Publication extension |
 
 ### DFG-state quality control
 `scripts/check_dfg_angle.py`, `check_dfg_calibrate.py` and `check_dfg_state.py` measure
@@ -136,6 +134,12 @@ diagrams by `scripts/plot_drug_contacts_2d.py` and `render_contacts_3d.py`; the
 active-versus-inactive docking summary by
 `scripts/plot_umcg_active_vs_inactive_both_drugs.py`; and the docking heatmap by
 `06l2b_plot_heatmap_ensemble_all3d.py`.
+
+### Pocket volumetry
+Active-site pocket volume across trajectory frames is measured by
+`scripts/pocket_volume.py` (driven by `make_volume.sh`) to quantify transient
+open/closed pocket states; the per-variant results are assembled into multi-panel
+figures with `scripts/pocket_panel.py`.
 
 ---
 
